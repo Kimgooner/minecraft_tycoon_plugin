@@ -32,7 +32,7 @@ public final class Tycoon extends JavaPlugin {
         MenuItemUtil.init(this);
         MenuGUI menuGUI = new MenuGUI(memberDAO, miningDAO, farmingDAO, fishingDAO, combatDAO);
 
-        getServer().getPluginManager().registerEvents(new MiningEventHandler(miningDAO), this);
+        getServer().getPluginManager().registerEvents(new MiningEventHandler(miningDAO, this), this);
         getServer().getPluginManager().registerEvents(new MenuEventHandler(menuGUI), this);
         getServer().getPluginManager().registerEvents(new GlobalEventHandler(this), this);
         getCommand("mining").setExecutor(new MiningCommandHandler(miningDAO));
