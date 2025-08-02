@@ -26,6 +26,12 @@ public class MiningEventHandler implements Listener {
         Block block = event.getBlock();
         MiningDAO.MiningStats stats = miningDAO.getMiningStats(player);
 
+        /*
+        행운 수치 100마다 1개 추가 확정
+        1~99의 수치는 확률로 변환
+        ex) 330 -> 3개 확정, 30%로 1개 더
+         */
+
         int fortune = stats.getFortune();
         player.sendMessage("행운 스텟: " + fortune);
 

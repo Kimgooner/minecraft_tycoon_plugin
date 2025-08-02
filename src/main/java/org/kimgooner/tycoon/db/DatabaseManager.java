@@ -10,7 +10,7 @@ public class DatabaseManager {
 
     public static void init() {
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite::memory:");
+            connection = DriverManager.getConnection("jdbc:sqlite::memory:"); //테스트용으로 DB 메모리 사용.
             Statement stmt = connection.createStatement();
 
             // members

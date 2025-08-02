@@ -27,9 +27,21 @@ tasks {
     }
 }
 
+def env = new Properties()
+def envFile = file('.env')
+if (envFile.exists()) {
+    envFile.withReader('UTF-8') { reader -> // <- 여기가 핵심!
+        env.load(reader)
+    }
+}
+def outputPath = env.getProperty('OUTPUT_PATH') ?: 'build/libs'
+
 tasks.jar{
+    /*
+
+     */
     archiveFileName = 'Tycoon.jar'
-    destinationDirectory = file('C:\\Users\\nubul\\OneDrive\\바탕 화면\\tyc_plg\\plugins')
+    destinationDirectory = file(outputPath)
 }
 
 def targetJavaVersion = 21
