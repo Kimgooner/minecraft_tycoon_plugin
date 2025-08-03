@@ -41,8 +41,9 @@ public final class Tycoon extends JavaPlugin {
 
         //GUI 및 기타 아이템 연결
         MenuItemUtil.init(this);
-        MenuGUI menuGUI = new MenuGUI(memberDAO, miningDAO, farmingDAO, fishingDAO, combatDAO);
 
+        //GUI 클래스
+        MenuGUI menuGUI = new MenuGUI(memberDAO, miningDAO, farmingDAO, fishingDAO, combatDAO);
         MiningDataGUI miningDataGUI = new MiningDataGUI(dataStorageDAO);
         FarmingDataGUI farmingDataGUI = new FarmingDataGUI();
         FishingDataGUI fishingDataGUI = new FishingDataGUI();
