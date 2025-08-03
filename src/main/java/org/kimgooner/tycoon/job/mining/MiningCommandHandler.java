@@ -35,17 +35,17 @@ public class MiningCommandHandler implements CommandExecutor {
                 return true;
             case "pristine":
                 int pristine = Integer.parseInt(args[1]);
-                miningDAO.setStat((Player) sender, "fortune", pristine);
+                miningDAO.setStat((Player) sender, "pristine", pristine);
                 sender.sendMessage("§a[Tycoon] §f순수를 " + pristine + "으로 설정합니다.");
                 return true;
             case "power":
                 int power = Integer.parseInt(args[1]);
-                miningDAO.setStat((Player) sender, "fortune", power);
+                miningDAO.setStat((Player) sender, "power", power);
                 sender.sendMessage("§a[Tycoon] §f파괴력을 " + power + "으로 설정합니다.");
                 return true;
             case "light":
                 int light = Integer.parseInt(args[1]);
-                miningDAO.setStat((Player) sender, "fortune", light);
+                miningDAO.setStat((Player) sender, "light", light);
                 sender.sendMessage("§a[Tycoon] §f빛을 " + light + "으로 설정합니다.");
                 return true;
         }
