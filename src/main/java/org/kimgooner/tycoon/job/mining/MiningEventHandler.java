@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.kimgooner.tycoon.db.dao.DataStorageDAO;
 import org.kimgooner.tycoon.db.dao.MiningDAO;
 import org.kimgooner.tycoon.global.item.ItemGlowUtil;
 
@@ -24,45 +25,47 @@ import java.util.Random;
 
 public class MiningEventHandler implements Listener {
     private final MiningDAO miningDAO;
+    private final DataStorageDAO dataStorageDAO;
     private final JavaPlugin plugin;
 
-    public MiningEventHandler(MiningDAO miningDAO, JavaPlugin plugin) {
+    public MiningEventHandler(MiningDAO miningDAO, DataStorageDAO dataStorageDAO, JavaPlugin plugin) {
         this.miningDAO = miningDAO;
+        this.dataStorageDAO = dataStorageDAO;
         this.plugin = plugin;
     }
 
     /*
     특정 블럭 목록
      */
-    public record DropData(ItemStack drop, int grade) {}
+    public record DropData(ItemStack drop, int grade, int target) {}
 
     private static final Map<Material, DropData> oreDropTable = Map.ofEntries(
-        Map.entry(Material.COAL_ORE, new DropData(new ItemStack(Material.COAL), 1)),
-        Map.entry(Material.COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT), 1)),
-        Map.entry(Material.IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT), 2)),
-        Map.entry(Material.GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT), 2)),
-        Map.entry(Material.LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 4), 3)),
-        Map.entry(Material.REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 4), 3)),
-        Map.entry(Material.DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND), 4)),
-        Map.entry(Material.EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD), 4)),
+        Map.entry(Material.COAL_ORE, new DropData(new ItemStack(Material.COAL), 1, 0)),
+        Map.entry(Material.COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT), 1, 1)),
+        Map.entry(Material.IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT), 2,2)),
+        Map.entry(Material.GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT), 2,3)),
+        Map.entry(Material.REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 4), 3,4)),
+        Map.entry(Material.LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 4), 3,5)),
+        Map.entry(Material.EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD), 4,6)),
+        Map.entry(Material.DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND), 4,7)),
 
-        Map.entry(Material.DEEPSLATE_COAL_ORE, new DropData(new ItemStack(Material.COAL, 2),1)),
-        Map.entry(Material.DEEPSLATE_COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT, 2),1)),
-        Map.entry(Material.DEEPSLATE_IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT, 2),2)),
-        Map.entry(Material.DEEPSLATE_GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT, 2),2)),
-        Map.entry(Material.DEEPSLATE_LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 8),3)),
-        Map.entry(Material.DEEPSLATE_REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 8),3)),
-        Map.entry(Material.DEEPSLATE_DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND, 2), 4)),
-        Map.entry(Material.DEEPSLATE_EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD, 2), 4)),
+        Map.entry(Material.DEEPSLATE_COAL_ORE, new DropData(new ItemStack(Material.COAL, 2),1, 0)),
+        Map.entry(Material.DEEPSLATE_COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT, 2),1,1)),
+        Map.entry(Material.DEEPSLATE_IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT, 2),2,2)),
+        Map.entry(Material.DEEPSLATE_GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT, 2),2,3)),
+        Map.entry(Material.DEEPSLATE_REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 8),3,4)),
+        Map.entry(Material.DEEPSLATE_LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 8),3,5)),
+        Map.entry(Material.DEEPSLATE_EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD, 2), 4,6)),
+        Map.entry(Material.DEEPSLATE_DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND, 2), 4,7)),
 
-        Map.entry(Material.COAL_BLOCK, new DropData(new ItemStack(Material.COAL, 4),1)),
-        Map.entry(Material.WAXED_COPPER_BLOCK, new DropData(new ItemStack(Material.COPPER_INGOT, 4),1)),
-        Map.entry(Material.IRON_BLOCK, new DropData(new ItemStack(Material.IRON_INGOT, 4),2)),
-        Map.entry(Material.GOLD_BLOCK, new DropData(new ItemStack(Material.GOLD_INGOT, 4),2)),
-        Map.entry(Material.LAPIS_BLOCK, new DropData(new ItemStack(Material.LAPIS_LAZULI, 16),3)),
-        Map.entry(Material.REDSTONE_BLOCK, new DropData(new ItemStack(Material.REDSTONE, 16),3)),
-        Map.entry(Material.DIAMOND_BLOCK, new DropData(new ItemStack(Material.DIAMOND, 4),4)),
-        Map.entry(Material.EMERALD_BLOCK, new DropData(new ItemStack(Material.EMERALD, 4),4))
+        Map.entry(Material.COAL_BLOCK, new DropData(new ItemStack(Material.COAL, 4),1, 0)),
+        Map.entry(Material.WAXED_COPPER_BLOCK, new DropData(new ItemStack(Material.COPPER_INGOT, 4),1,1)),
+        Map.entry(Material.IRON_BLOCK, new DropData(new ItemStack(Material.IRON_INGOT, 4),2,2)),
+        Map.entry(Material.GOLD_BLOCK, new DropData(new ItemStack(Material.GOLD_INGOT, 4),2,3)),
+        Map.entry(Material.REDSTONE_BLOCK, new DropData(new ItemStack(Material.REDSTONE, 16),3,4)),
+        Map.entry(Material.LAPIS_BLOCK, new DropData(new ItemStack(Material.LAPIS_LAZULI, 16),3,5)),
+        Map.entry(Material.EMERALD_BLOCK, new DropData(new ItemStack(Material.EMERALD, 4),4,6)),
+        Map.entry(Material.DIAMOND_BLOCK, new DropData(new ItemStack(Material.DIAMOND, 4),4,7))
     );
 
     /*
@@ -111,6 +114,7 @@ public class MiningEventHandler implements Listener {
         dropItem.setAmount(1);
 
         int grade = dropData.grade();
+        int target = dropData.target();
 
         ItemMeta meta = dropItem.getItemMeta();
         if (meta != null) {
@@ -132,6 +136,11 @@ public class MiningEventHandler implements Listener {
         itemEntity.setCustomNameVisible(true);
 
         ItemGlowUtil.applyGlowColor(itemEntity, grade);
+
+        if(isPristine){
+            result *= 3;
+        }
+        dataStorageDAO.addAmount(player, 1, target, result);
 
         new BukkitRunnable() {
             @Override

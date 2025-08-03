@@ -85,6 +85,19 @@ public class DatabaseManager {
                 );
             """);
 
+            // data_storage
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS data_storage (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    member_uuid TEXT NOT NULL,
+                    category_id INTEGER NOT NULL,  -- 1: 채광, 2: 농사, 3: 낚시, 4: 전투 등
+                    slot_index INTEGER NOT NULL,   -- 0 ~ 20, 슬롯 번호 (21칸)
+                    amount INTEGER DEFAULT 0,       -- 보유 수량
+                    FOREIGN KEY(member_uuid) REFERENCES members(uuid),
+                    UNIQUE(member_uuid, category_id, slot_index)
+                );
+            """);
+
             stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();

@@ -37,15 +37,16 @@ public final class Tycoon extends JavaPlugin {
         FarmingDAO farmingDAO = new FarmingDAO(DatabaseManager.getConnection());
         FishingDAO fishingDAO = new FishingDAO(DatabaseManager.getConnection());
         CombatDAO combatDAO = new CombatDAO(DatabaseManager.getConnection());
+        DataStorageDAO dataStorageDAO = new DataStorageDAO(DatabaseManager.getConnection());
 
         //GUI 및 기타 아이템 연결
         MenuItemUtil.init(this);
         MenuGUI menuGUI = new MenuGUI(memberDAO, miningDAO, farmingDAO, fishingDAO, combatDAO);
 
-        CombatDataGUI combatDataGUI = new CombatDataGUI();
+        MiningDataGUI miningDataGUI = new MiningDataGUI(dataStorageDAO);
         FarmingDataGUI farmingDataGUI = new FarmingDataGUI();
         FishingDataGUI fishingDataGUI = new FishingDataGUI();
-        MiningDataGUI miningDataGUI = new MiningDataGUI();
+        CombatDataGUI combatDataGUI = new CombatDataGUI(dataStorageDAO);
         DataChestGUI dataChestGUI = new DataChestGUI();
 
         //메뉴 핸들러
@@ -61,10 +62,10 @@ public final class Tycoon extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CombatDataEventHandler(dataChestGUI), this);
 
         //전역 이벤트 핸들러
-        getServer().getPluginManager().registerEvents(new GlobalEventHandler(this), this);
+        getServer().getPluginManager().registerEvents(new GlobalEventHandler(dataStorageDAO, this), this);
 
         //채광 이벤트 핸들러
-        getServer().getPluginManager().registerEvents(new MiningEventHandler(miningDAO, this), this);
+        getServer().getPluginManager().registerEvents(new MiningEventHandler(miningDAO, dataStorageDAO, this), this);
 
         //채광 명령어 핸들러
         getCommand("mining").setExecutor(new MiningCommandHandler(miningDAO));
