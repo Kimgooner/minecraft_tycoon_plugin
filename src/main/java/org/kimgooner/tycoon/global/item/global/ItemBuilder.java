@@ -1,4 +1,4 @@
-package org.kimgooner.tycoon.global.item;
+package org.kimgooner.tycoon.global.item.global;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;

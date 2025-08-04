@@ -5,7 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.kimgooner.tycoon.global.item.ItemBuilder;
+import org.kimgooner.tycoon.global.item.global.ItemBuilder;
 
 public class ItemTemplate {
     public static ItemStack getBackward(){

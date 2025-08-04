@@ -14,6 +14,7 @@ import org.kimgooner.tycoon.global.datachest.fishing.FishingDataGUI;
 import org.kimgooner.tycoon.global.datachest.mining.MiningDataEventHandler;
 import org.kimgooner.tycoon.global.datachest.mining.MiningDataGUI;
 import org.kimgooner.tycoon.global.global.GlobalEventHandler;
+import org.kimgooner.tycoon.global.item.job.mining.PickaxeList;
 import org.kimgooner.tycoon.global.menu.MenuEventHandler;
 import org.kimgooner.tycoon.global.menu.MenuGUI;
 import org.kimgooner.tycoon.global.menu.MenuItemUtil;
@@ -69,7 +70,10 @@ public final class Tycoon extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MiningEventHandler(miningDAO, dataStorageDAO, this), this);
 
         //채광 명령어 핸들러
-        getCommand("mining").setExecutor(new MiningCommandHandler(miningDAO));
+        getCommand("mining").setExecutor(new MiningCommandHandler(this, miningDAO));
+
+        //채광 아이템 메이커
+        PickaxeList pickaxeList = new PickaxeList(this);
 
 
 

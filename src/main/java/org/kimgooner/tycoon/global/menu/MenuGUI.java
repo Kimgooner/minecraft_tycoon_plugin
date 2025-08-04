@@ -9,8 +9,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.kimgooner.tycoon.db.dao.*;
-import org.kimgooner.tycoon.global.item.ItemBuilder;
-import org.kimgooner.tycoon.global.item.ItemUtil;
+import org.kimgooner.tycoon.global.item.global.ItemBuilder;
+import org.kimgooner.tycoon.global.item.global.ItemUtil;
 
 public class MenuGUI {
     private final MemberDAO memberDAO;

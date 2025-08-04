@@ -7,7 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.kimgooner.tycoon.global.item.ItemBuilder;
+import org.kimgooner.tycoon.global.item.global.ItemBuilder;
 
 import java.util.Arrays;
 import java.util.List;

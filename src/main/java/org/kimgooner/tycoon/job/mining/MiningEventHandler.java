@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -13,12 +14,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
 import org.kimgooner.tycoon.db.dao.MiningDAO;
-import org.kimgooner.tycoon.global.item.ItemGlowUtil;
+import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -72,6 +76,24 @@ public class MiningEventHandler implements Listener {
     특정 블럭만 처리하도록
      */
 
+    private static final List<String> STAT_KEYS = List.of("power", "speed", "fortune", "pristine");
+    private static final List<String> ENCHANT_KEYS = List.of("enchant_speed", "enchant_fortune", "enchant_pristine");
+    private static final List<Integer> ENCHANT_FORTUNE = List.of(
+            0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+    );
+
+    private static final List<Integer> ENCHANT_PRISTINE = List.of(
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    );
+
+    public int getStat(String key, Player player) {
+        ItemStack item = player.getInventory().getItemInMainHand();
+        ItemMeta meta = item.getItemMeta();
+        if ((!STAT_KEYS.contains(key) && !ENCHANT_KEYS.contains(key)) || meta == null) return 0;
+        PersistentDataContainer data = meta.getPersistentDataContainer();
+        return data.getOrDefault(new NamespacedKey(plugin, key), PersistentDataType.INTEGER, 0);
+    }
+
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -90,8 +112,22 @@ public class MiningEventHandler implements Listener {
         ex) 330 -> 3개 확정, 30%로 1개 더
          */
 
-        int fortune = stats.getFortune();
-        int pristine = stats.getPristine();
+        int enchant_fortune = getStat("enchant_fortune", player);
+        int enchant_pristine = getStat("enchant_pristine", player);
+
+        int fortune = stats.getFortune() + getStat("fortune", player) + ENCHANT_FORTUNE.get(enchant_fortune);
+        int pristine = stats.getPristine() + getStat("pristine", player) + ENCHANT_PRISTINE.get(enchant_pristine);
+
+        player.sendMessage("인챈트 행운: " + enchant_fortune);
+        player.sendMessage("스텟 행운: " + stats.getFortune());
+        player.sendMessage("장비 행운: " + getStat("fortune", player));
+        player.sendMessage("인챈트 순수: " + enchant_pristine);
+        player.sendMessage("스텟 순수: " + stats.getPristine());
+        player.sendMessage("장비 순수: " + getStat("pristine", player));
+        player.sendMessage("-------------------------");
+        player.sendMessage("채광 행운:" + fortune + " 만큼 적용됨.");
+        player.sendMessage("순수:" + pristine + " 만큼 적용됨.");
+
         int guaranteed = fortune / 100;
         int chance = fortune % 100;
 
