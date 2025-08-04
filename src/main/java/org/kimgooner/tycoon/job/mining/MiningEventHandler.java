@@ -3,15 +3,21 @@ package org.kimgooner.tycoon.job.mining;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -78,6 +84,9 @@ public class MiningEventHandler implements Listener {
 
     private static final List<String> STAT_KEYS = List.of("power", "speed", "fortune", "pristine");
     private static final List<String> ENCHANT_KEYS = List.of("enchant_speed", "enchant_fortune", "enchant_pristine");
+    private static final List<Integer> ENCHANT_EFFICIENCY = List.of(
+            0, 30, 50, 70, 90, 110, 130, 150, 170, 190, 210
+    );
     private static final List<Integer> ENCHANT_FORTUNE = List.of(
             0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
     );
@@ -92,6 +101,96 @@ public class MiningEventHandler implements Listener {
         if ((!STAT_KEYS.contains(key) && !ENCHANT_KEYS.contains(key)) || meta == null) return 0;
         PersistentDataContainer data = meta.getPersistentDataContainer();
         return data.getOrDefault(new NamespacedKey(plugin, key), PersistentDataType.INTEGER, 0);
+    }
+
+    private boolean isPickaxe(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return false;
+
+        Material type = item.getType();
+        return type == Material.WOODEN_PICKAXE ||
+                type == Material.STONE_PICKAXE ||
+                type == Material.IRON_PICKAXE ||
+                type == Material.GOLDEN_PICKAXE ||
+                type == Material.DIAMOND_PICKAXE ||
+                type == Material.NETHERITE_PICKAXE;
+    }
+
+    public void applyMiningSpeedStat(Player player, int speedStat) {
+        AttributeInstance attr = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
+        if (attr == null) return;
+
+        // 중복 방지: 기존 modifier 제거
+        /*
+        for (AttributeModifier mod : attr.getModifiers()) {
+            if (mod.getName().equals("customBreakSpeed")) {
+                attr.removeModifier(mod);
+                break;
+            }
+        }
+         */
+
+        // 스탯 1당 0.2 적용
+        double bonus = speedStat * 0.01;
+
+        AttributeModifier modifier = new AttributeModifier(
+                NamespacedKey.minecraft("custom_break_speed"),
+                bonus,
+                AttributeModifier.Operation.ADD_SCALAR
+        );
+
+        attr.addModifier(modifier);
+    }
+
+    public void removeMiningSpeedModifier(Player player) {
+        AttributeInstance attr = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
+        if (attr == null) return;
+
+        for (AttributeModifier mod : attr.getModifiers()) {
+            attr.removeModifier(mod);
+        }
+    }
+
+    @EventHandler
+    public void onBlockDamage(BlockDamageEvent event) {
+        Player player = event.getPlayer();
+        Block block = event.getBlock();
+        Material material = block.getType();
+
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if(!isPickaxe(item)) return;
+
+        if (!oreDropTable.containsKey(material)) {
+            event.setCancelled(true);  // 다른 블럭은 부수기 못 하게 막음
+            event.getPlayer().sendMessage(Component.text("이 블럭은 부술 수 없습니다!").color(NamedTextColor.RED));
+        }
+    }
+
+    @EventHandler
+    public void onItemHeld(PlayerItemHeldEvent event) {
+        Player player = event.getPlayer();
+
+        // 1틱 뒤에 실행 (아이템 장착 후 적용되도록)
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            ItemStack mainHand = player.getInventory().getItemInMainHand();
+
+            AttributeInstance attr = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
+            if (attr == null) return;
+
+            // 기존 modifier 제거
+            removeMiningSpeedModifier(player);
+
+            if (isPickaxe(mainHand)) {
+                MiningDAO.MiningStats stats = miningDAO.getMiningStats(player);
+                int speedStat = stats.getSpeed() + getStat("speed", player) + ENCHANT_EFFICIENCY.get(getStat("enchant_speed", player)); // <- 이건 너가 구현한 메서드
+                applyMiningSpeedStat(player, speedStat);
+                player.sendMessage(
+                        Component.text("⸕ 채광 속도 적용됨 - ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                                .append(Component.text(String.format("%,d",  speedStat)).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false))
+                );
+            } else {
+                player.sendMessage(Component.text("⸕ 채광 속도 적용 해제").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
+            }
+        }, 1L);
     }
 
     @EventHandler
@@ -118,6 +217,8 @@ public class MiningEventHandler implements Listener {
         int fortune = stats.getFortune() + getStat("fortune", player) + ENCHANT_FORTUNE.get(enchant_fortune);
         int pristine = stats.getPristine() + getStat("pristine", player) + ENCHANT_PRISTINE.get(enchant_pristine);
 
+        /* 디버그 콘솔
+
         player.sendMessage("인챈트 행운: " + enchant_fortune);
         player.sendMessage("스텟 행운: " + stats.getFortune());
         player.sendMessage("장비 행운: " + getStat("fortune", player));
@@ -127,6 +228,8 @@ public class MiningEventHandler implements Listener {
         player.sendMessage("-------------------------");
         player.sendMessage("채광 행운:" + fortune + " 만큼 적용됨.");
         player.sendMessage("순수:" + pristine + " 만큼 적용됨.");
+
+         */
 
         int guaranteed = fortune / 100;
         int chance = fortune % 100;
