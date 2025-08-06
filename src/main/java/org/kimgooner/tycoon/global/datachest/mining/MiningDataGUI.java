@@ -18,6 +18,7 @@ public class MiningDataGUI {
     }
 
     List<ItemStack> itemList = List.of(
+            new ItemStack(Material.STONE),
             new ItemStack(Material.COAL),
             new ItemStack(Material.COPPER_INGOT),
             new ItemStack(Material.IRON_INGOT),
@@ -38,10 +39,11 @@ public class MiningDataGUI {
                 miningDataStorages.get(4).getAmount(),
                 miningDataStorages.get(5).getAmount(),
                 miningDataStorages.get(6).getAmount(),
-                miningDataStorages.get(7).getAmount()
+                miningDataStorages.get(7).getAmount(),
+                miningDataStorages.get(8).getAmount()
         );
         List<Integer> gradeList = List.of(
-                1,1,2,2,3,3,4,4
+                0,1,1,2,2,3,3,4,4
         );
         DataChestTemplate.populateItems(miningDataGUI, itemList, amountList, gradeList);
         player.openInventory(miningDataGUI);

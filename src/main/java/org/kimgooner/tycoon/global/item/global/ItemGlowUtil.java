@@ -29,6 +29,7 @@ public class ItemGlowUtil {
     // 이름 색상 포함 Prefix
     public static NamedTextColor getDisplayColor(int grade) {
         return switch (grade) {
+            case 0 -> NamedTextColor.DARK_GRAY;
             case 1 -> NamedTextColor.GRAY;
             case 2 -> NamedTextColor.GREEN;
             case 3 -> NamedTextColor.BLUE;
@@ -46,6 +47,7 @@ public class ItemGlowUtil {
     // Scoreboard 팀 색상용: ChatColor (구버전 호환)
     public static ChatColor getBukkitColorByGrade(int grade) {
         return switch (grade) {
+            case 0 -> ChatColor.DARK_GRAY;
             case 1 -> ChatColor.GRAY;
             case 2 -> ChatColor.GREEN;
             case 3 -> ChatColor.BLUE;

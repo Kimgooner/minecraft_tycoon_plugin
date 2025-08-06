@@ -1,5 +1,11 @@
 package org.kimgooner.tycoon.job.mining;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -50,32 +56,40 @@ public class MiningEventHandler implements Listener {
     public record DropData(ItemStack drop, int grade, int target) {}
 
     private static final Map<Material, DropData> oreDropTable = Map.ofEntries(
-        Map.entry(Material.COAL_ORE, new DropData(new ItemStack(Material.COAL), 1, 0)),
-        Map.entry(Material.COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT), 1, 1)),
-        Map.entry(Material.IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT), 2,2)),
-        Map.entry(Material.GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT), 2,3)),
-        Map.entry(Material.REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 4), 3,4)),
-        Map.entry(Material.LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 4), 3,5)),
-        Map.entry(Material.EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD), 4,6)),
-        Map.entry(Material.DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND), 4,7)),
+        Map.entry(Material.STONE, new DropData(new ItemStack(Material.STONE), 0, 0)),
+        Map.entry(Material.COBBLESTONE, new DropData(new ItemStack(Material.STONE), 0, 0)),
+        Map.entry(Material.ANDESITE, new DropData(new ItemStack(Material.STONE), 0, 0)),
+        Map.entry(Material.DEEPSLATE, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
+        Map.entry(Material.COBBLED_DEEPSLATE, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
+        Map.entry(Material.DEEPSLATE_BRICKS, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
+        Map.entry(Material.DEEPSLATE_TILES, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
 
-        Map.entry(Material.DEEPSLATE_COAL_ORE, new DropData(new ItemStack(Material.COAL, 2),1, 0)),
-        Map.entry(Material.DEEPSLATE_COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT, 2),1,1)),
-        Map.entry(Material.DEEPSLATE_IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT, 2),2,2)),
-        Map.entry(Material.DEEPSLATE_GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT, 2),2,3)),
-        Map.entry(Material.DEEPSLATE_REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 8),3,4)),
-        Map.entry(Material.DEEPSLATE_LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 8),3,5)),
-        Map.entry(Material.DEEPSLATE_EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD, 2), 4,6)),
-        Map.entry(Material.DEEPSLATE_DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND, 2), 4,7)),
+        Map.entry(Material.COAL_ORE, new DropData(new ItemStack(Material.COAL), 1, 1)),
+        Map.entry(Material.COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT), 1, 2)),
+        Map.entry(Material.IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT), 2,3)),
+        Map.entry(Material.GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT), 2,4)),
+        Map.entry(Material.REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 4), 3,5)),
+        Map.entry(Material.LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 4), 3,6)),
+        Map.entry(Material.EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD), 4,7)),
+        Map.entry(Material.DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND), 4,8)),
 
-        Map.entry(Material.COAL_BLOCK, new DropData(new ItemStack(Material.COAL, 4),1, 0)),
-        Map.entry(Material.WAXED_COPPER_BLOCK, new DropData(new ItemStack(Material.COPPER_INGOT, 4),1,1)),
-        Map.entry(Material.IRON_BLOCK, new DropData(new ItemStack(Material.IRON_INGOT, 4),2,2)),
-        Map.entry(Material.GOLD_BLOCK, new DropData(new ItemStack(Material.GOLD_INGOT, 4),2,3)),
-        Map.entry(Material.REDSTONE_BLOCK, new DropData(new ItemStack(Material.REDSTONE, 16),3,4)),
-        Map.entry(Material.LAPIS_BLOCK, new DropData(new ItemStack(Material.LAPIS_LAZULI, 16),3,5)),
-        Map.entry(Material.EMERALD_BLOCK, new DropData(new ItemStack(Material.EMERALD, 4),4,6)),
-        Map.entry(Material.DIAMOND_BLOCK, new DropData(new ItemStack(Material.DIAMOND, 4),4,7))
+        Map.entry(Material.DEEPSLATE_COAL_ORE, new DropData(new ItemStack(Material.COAL),1, 1)),
+        Map.entry(Material.DEEPSLATE_COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT),1,2)),
+        Map.entry(Material.DEEPSLATE_IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT),2,3)),
+        Map.entry(Material.DEEPSLATE_GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT),2,4)),
+        Map.entry(Material.DEEPSLATE_REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 4),3,5)),
+        Map.entry(Material.DEEPSLATE_LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 4),3,6)),
+        Map.entry(Material.DEEPSLATE_EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD), 4,7)),
+        Map.entry(Material.DEEPSLATE_DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND), 4,8)),
+
+        Map.entry(Material.COAL_BLOCK, new DropData(new ItemStack(Material.COAL, 2),1, 1)),
+        Map.entry(Material.WAXED_COPPER_BLOCK, new DropData(new ItemStack(Material.COPPER_INGOT, 2),1,2)),
+        Map.entry(Material.IRON_BLOCK, new DropData(new ItemStack(Material.IRON_INGOT, 2),2,3)),
+        Map.entry(Material.GOLD_BLOCK, new DropData(new ItemStack(Material.GOLD_INGOT, 2),2,4)),
+        Map.entry(Material.REDSTONE_BLOCK, new DropData(new ItemStack(Material.REDSTONE, 8),3,5)),
+        Map.entry(Material.LAPIS_BLOCK, new DropData(new ItemStack(Material.LAPIS_LAZULI, 8),3,6)),
+        Map.entry(Material.EMERALD_BLOCK, new DropData(new ItemStack(Material.EMERALD, 2),4,7)),
+        Map.entry(Material.DIAMOND_BLOCK, new DropData(new ItemStack(Material.DIAMOND, 2),4,8))
     );
 
     /*
@@ -193,6 +207,7 @@ public class MiningEventHandler implements Listener {
         }, 1L);
     }
 
+    // 광물 드랍 시스템
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -235,8 +250,9 @@ public class MiningEventHandler implements Listener {
         int chance = fortune % 100;
 
         Random random = new Random();
-        int result = (random.nextInt(100) < chance) ? 1 : 0;
-        result += guaranteed + 1;
+        int[] result = new int[1];
+        result[0] = (random.nextInt(100) < chance) ? 1 : 0;
+        result[0] += guaranteed + 1;
 
         boolean isPristine = random.nextInt(100) + pristine >= 95;
 
@@ -249,7 +265,7 @@ public class MiningEventHandler implements Listener {
 
         ItemStack baseDrop = dropData.drop();
         ItemStack dropItem = baseDrop.clone();
-        result *= dropItem.getAmount();
+        result[0] *= dropItem.getAmount();
         dropItem.setAmount(1);
 
         int grade = dropData.grade();
@@ -258,9 +274,9 @@ public class MiningEventHandler implements Listener {
         ItemMeta meta = dropItem.getItemMeta();
         if (meta != null) {
             Component display = Component.text(dropItem.getType().name().toLowerCase().replace("_", " ")).color(ItemGlowUtil.getDisplayColor(grade)).decoration(TextDecoration.ITALIC, false)
-                    .append(Component.text(" x" + result).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
+                    .append(Component.text(" x" + result[0]).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
             if(isPristine){
-                display = Component.text("✧ 순수한 ").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false).append(display).append(Component.text("(+" + result*2 + ")").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+                display = Component.text("✧ 순수한 ").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false).append(display).append(Component.text("(+" + result[0] * 2 + ")").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
             }
             display = display.append(Component.text(" By " + player.getName()).color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
             meta.displayName(display);
@@ -277,9 +293,13 @@ public class MiningEventHandler implements Listener {
         ItemGlowUtil.applyGlowColor(itemEntity, grade);
 
         if(isPristine){
-            result *= 3;
+            result[0] *= 3;
         }
-        dataStorageDAO.addAmount(player, 1, target, result);
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            int finalResult = result[0];
+            dataStorageDAO.addAmount(player, 1, target, finalResult);
+        });
 
         new BukkitRunnable() {
             @Override
@@ -287,5 +307,142 @@ public class MiningEventHandler implements Listener {
                 itemEntity.remove();
             }
         }.runTaskLater(plugin, 30L);
+    }
+
+    /*
+    돌 -> 50%
+    광물 -> 50%
+        일반 -> 35%
+        딥 -> 10%
+        블럭 -> 5%
+     */
+
+    private final Map<Integer, List<Integer>> backAndFrontWeight = Map.of(
+            1, List.of(35, 15),
+            2, List.of(25, 25),
+            3, List.of(15, 35)
+    );
+
+    private boolean getWeightedResult(int key) {
+        List<Integer> weights = backAndFrontWeight.getOrDefault(key, List.of(1, 1));
+        int totalWeight = weights.get(0) + weights.get(1);
+        int rand = new Random().nextInt(totalWeight);
+
+        return rand < weights.get(0);
+    }
+
+    private boolean getRandomBoolean() {
+        return Math.random() < 0.5;
+    }
+
+    private final int[] WEIGHTS = {40, 40, 10, 10};
+    private final Map<Integer, List<Material>> gradesFront = Map.of(
+            1, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK),
+            2, List.of(Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE, Material.REDSTONE_BLOCK, Material.LAPIS_BLOCK),
+            3, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK),
+            4, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK)
+    );
+    private final Map<Integer, List<Material>> gradesBack = Map.of(
+            1, List.of(Material.IRON_ORE, Material.GOLD_ORE, Material.IRON_BLOCK, Material.GOLD_BLOCK),
+            2, List.of(Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_DIAMOND_ORE, Material.EMERALD_BLOCK, Material.DIAMOND_BLOCK),
+            3, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK),
+            4, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK)
+    );
+
+    private final int[] WEIGHTS_STONE = {10, 10, 10, 10};
+    private final Map<Integer, List<Material>> gradesStone = Map.of(
+            1, List.of(Material.STONE, Material.COBBLESTONE, Material.ANDESITE, Material.STONE),
+            2, List.of(Material.DEEPSLATE, Material.COBBLED_DEEPSLATE, Material.DEEPSLATE_BRICKS, Material.DEEPSLATE_TILES),
+            3, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK),
+            4, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK)
+    );
+
+    private Material getWeightedBlockFromCategory(Map<Integer, List<Material>> categoryBlocks, Integer category, int[] weightList) {
+        List<Material> list = categoryBlocks.getOrDefault(category, List.of(Material.STONE));
+        if (list.size() != weightList.length) return Material.STONE; // 길이 안 맞으면 기본값 반환
+
+        int totalWeight = 100;
+
+        Random random = new Random();
+        int rand = random.nextInt(totalWeight);
+        int cumulative = 0;
+
+        for (int i = 0; i < weightList.length; i++) {
+            cumulative += weightList[i];
+            if (rand < cumulative) {
+                return list.get(i);
+            }
+        }
+
+        return list.getFirst(); // fallback
+    }
+
+    //광산 광물 재생 시스템
+    @EventHandler
+    public void onBlockBreakInMine(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        Location loc = block.getLocation();
+        Block targetBlock = loc.getBlock();
+
+        int[] mine = isInTargetRegion(loc);
+        // 특정 리전에 있을 때만 작동
+
+        if(mine[0] == 0 || mine[1] == 0){
+            return;
+        }
+
+        int floor = mine[0];
+        int diff = mine[1];
+
+        Material result;
+        if(getRandomBoolean()) {
+            if (getWeightedResult(diff)) {
+                result = getWeightedBlockFromCategory(gradesFront, floor, WEIGHTS);
+            } else {
+                result = getWeightedBlockFromCategory(gradesBack, floor, WEIGHTS);
+            }
+        }
+        else{
+            result = getWeightedBlockFromCategory(gradesStone, floor, WEIGHTS_STONE);
+        }
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(Material.BEDROCK), 1L); // 1틱 뒤 베드락
+        Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(result), 60L); // 3초 뒤 광물 변환
+    }
+
+    private int[] isInTargetRegion(Location loc) {
+        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+        RegionManager regions = container.get(BukkitAdapter.adapt(loc.getWorld()));
+        if (regions == null) return new int[]{0, 0};
+
+        ApplicableRegionSet regionSet = regions.getApplicableRegions(BukkitAdapter.asBlockVector(loc));
+
+        for (ProtectedRegion region : regionSet) {
+            int start = 0, end = 0;
+            if (region.getId().startsWith("mine_1")){
+                start = 1;
+            }
+            if (region.getId().startsWith("mine_2")){
+                start = 2;
+            }
+            if (region.getId().startsWith("mine_3")){
+                start = 3;
+            }
+            if (region.getId().startsWith("mine_4")){
+                start = 4;
+            }
+
+            if (region.getId().endsWith("_1")) {
+                end = 1;
+            }
+            if (region.getId().endsWith("_2")) {
+                end = 2;
+            }
+            if (region.getId().endsWith("_3")) {
+                end = 3;
+            }
+            return  new int[]{start, end};
+        }
+        return new int[]{0, 0};
     }
 }

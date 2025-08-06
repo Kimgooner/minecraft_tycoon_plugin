@@ -1,9 +1,11 @@
 package org.kimgooner.tycoon.global.global;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -18,6 +20,13 @@ public class GlobalEventHandler implements Listener {
     public GlobalEventHandler(DataStorageDAO dataStorageDAO, JavaPlugin plugin) {
         this.dataStorageDAO = dataStorageDAO;
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onCreatureSpawn(CreatureSpawnEvent event) {
+        if (event.getEntityType() == EntityType.BAT) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
