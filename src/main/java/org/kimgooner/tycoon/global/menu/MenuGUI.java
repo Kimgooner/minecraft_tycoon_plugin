@@ -68,6 +68,8 @@ public class MenuGUI {
                         .append(Component.text(String.format("%d ⸕", miningStats.getSpeed())).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)))
                 .addLore(Component.text("채광 행운: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
                         .append(Component.text(String.format("%d ☘", miningStats.getFortune())).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("연쇄 파괴: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ▚", miningStats.getSpread())).color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)))
                 .addLore(Component.text("순수: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
                         .append(Component.text(String.format("%d ✧", miningStats.getPristine())).color(NamedTextColor.DARK_PURPLE).decoration(TextDecoration.ITALIC, false)))
                 .addLore(Component.text("빛: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)

@@ -18,13 +18,22 @@ import org.kimgooner.tycoon.global.item.job.mining.PickaxeList;
 import org.kimgooner.tycoon.global.menu.MenuEventHandler;
 import org.kimgooner.tycoon.global.menu.MenuGUI;
 import org.kimgooner.tycoon.global.menu.MenuItemUtil;
+import org.kimgooner.tycoon.job.mining.MineEventHandler;
 import org.kimgooner.tycoon.job.mining.MiningCommandHandler;
 import org.kimgooner.tycoon.job.mining.MiningEventHandler;
 
 import java.sql.Connection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public final class Tycoon extends JavaPlugin {
     private Connection connection;
+    private final Set<UUID> editModePlayers = new HashSet<>();
+
+    public Set<UUID> getEditModePlayers() {
+        return editModePlayers;
+    }
 
     @Override
     public void onEnable() {
@@ -68,6 +77,7 @@ public final class Tycoon extends JavaPlugin {
 
         //채광 이벤트 핸들러
         getServer().getPluginManager().registerEvents(new MiningEventHandler(miningDAO, dataStorageDAO, this), this);
+        getServer().getPluginManager().registerEvents(new MineEventHandler(this), this);
 
         //채광 명령어 핸들러
         getCommand("mining").setExecutor(new MiningCommandHandler(this, miningDAO));

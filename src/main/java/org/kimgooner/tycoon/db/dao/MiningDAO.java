@@ -24,7 +24,8 @@ public class MiningDAO {
         int pristine;
         int power;
         int light;
-        public MiningStats(int level, int exp, int wisdom, int fortune, int speed, int pristine, int power, int light) {
+        int spread;
+        public MiningStats(int level, int exp, int wisdom, int fortune, int speed, int pristine, int power, int light, int spread) {
             this.level = level;
             this.exp = exp;
             this.wisdom = wisdom;
@@ -33,6 +34,7 @@ public class MiningDAO {
             this.pristine = pristine;
             this.power = power;
             this.light = light;
+            this.spread = spread;
         }
         public int getLevel() {
             return level;
@@ -58,6 +60,9 @@ public class MiningDAO {
         public int getLight() {
             return light;
         }
+        public int getSpread() {
+            return spread;
+        }
     }
 
     public MiningStats getMiningStats(Player player) {
@@ -74,22 +79,23 @@ public class MiningDAO {
                         rs.getInt("speed"),
                         rs.getInt("pristine"),
                         rs.getInt("power"),
-                        rs.getInt("light"));
+                        rs.getInt("light"),
+                        rs.getInt("spread"));
             } else {
-                PreparedStatement insert = conn.prepareStatement("INSERT INTO minings (member_uuid, level, exp, wisdom, fortune, speed, pristine, power, light) VALUES (?, 1, 0, 0, 0, 0, 0, 0, 0)");
+                PreparedStatement insert = conn.prepareStatement("INSERT INTO minings (member_uuid, level, exp, wisdom, fortune, speed, pristine, power, light, spread) VALUES (?, 1, 0, 0, 0, 0, 0, 0, 0, 0)");
                 insert.setString(1, player.getUniqueId().toString());
                 insert.executeUpdate();
-                return new MiningStats(1,0,0,0,0,0,0,0);
+                return new MiningStats(1,0,0,0,0,0,0,0, 0);
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return new MiningStats(1,0,0,0,0,0,0,0);
+            return new MiningStats(1,0,0,0,0,0,0,0, 0);
         }
     }
 
     public void setStat(Player player, String tag, int amount) {
         // 안전을 위해 컬럼명 검증 (SQL Injection 방지)
-        List<String> allowedColumns = List.of("level", "exp", "wisdom", "fortune", "speed", "pristine", "power", "light");
+        List<String> allowedColumns = List.of("level", "exp", "wisdom", "fortune", "speed", "pristine", "power", "light", "spread");
         if (!allowedColumns.contains(tag)) {
             throw new IllegalArgumentException("Invalid column name: " + tag);
         }

@@ -35,6 +35,7 @@ public class DatabaseManager {
                     pristine INTEGER DEFAULT 0,
                     power INTEGER DEFAULT 0,
                     light INTEGER DEFAULT 0,
+                    spread INTEGER DEFAULT 0,
                     FOREIGN KEY(member_uuid) REFERENCES members(uuid)
                 );
             """);

@@ -17,6 +17,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,24 +31,25 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.kimgooner.tycoon.Tycoon;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
 import org.kimgooner.tycoon.db.dao.MiningDAO;
 import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 public class MiningEventHandler implements Listener {
     private final MiningDAO miningDAO;
     private final DataStorageDAO dataStorageDAO;
-    private final JavaPlugin plugin;
+    private final Tycoon plugin;
+    private final RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
 
     public MiningEventHandler(MiningDAO miningDAO, DataStorageDAO dataStorageDAO, JavaPlugin plugin) {
         this.miningDAO = miningDAO;
         this.dataStorageDAO = dataStorageDAO;
-        this.plugin = plugin;
+        this.plugin = (Tycoon) plugin;
     }
 
     /*
@@ -59,10 +61,18 @@ public class MiningEventHandler implements Listener {
         Map.entry(Material.STONE, new DropData(new ItemStack(Material.STONE), 0, 0)),
         Map.entry(Material.COBBLESTONE, new DropData(new ItemStack(Material.STONE), 0, 0)),
         Map.entry(Material.ANDESITE, new DropData(new ItemStack(Material.STONE), 0, 0)),
+        Map.entry(Material.STONE_BRICKS, new DropData(new ItemStack(Material.STONE), 0, 0)),
+        Map.entry(Material.POLISHED_ANDESITE, new DropData(new ItemStack(Material.STONE), 0, 0)),
+
         Map.entry(Material.DEEPSLATE, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
         Map.entry(Material.COBBLED_DEEPSLATE, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
-        Map.entry(Material.DEEPSLATE_BRICKS, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
-        Map.entry(Material.DEEPSLATE_TILES, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
+        Map.entry(Material.BASALT, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
+        Map.entry(Material.SMOOTH_BASALT, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
+
+        Map.entry(Material.DEEPSLATE_BRICKS, new DropData(new ItemStack(Material.STONE, 3), 0, 0)),
+        Map.entry(Material.DEEPSLATE_TILES, new DropData(new ItemStack(Material.STONE, 3), 0, 0)),
+        Map.entry(Material.CHISELED_DEEPSLATE, new DropData(new ItemStack(Material.STONE, 3), 0, 0)),
+        Map.entry(Material.CRACKED_DEEPSLATE_TILES, new DropData(new ItemStack(Material.STONE, 3), 0, 0)),
 
         Map.entry(Material.COAL_ORE, new DropData(new ItemStack(Material.COAL), 1, 1)),
         Map.entry(Material.COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT), 1, 2)),
@@ -129,6 +139,23 @@ public class MiningEventHandler implements Listener {
                 type == Material.NETHERITE_PICKAXE;
     }
 
+    private final Map<String, Double> REGION_MAP_RESISTANCE = Map.of(
+            "mine1", -0.30,
+            "mine2", -0.50,
+            "mine3", -0.70,
+            "mine4", -0.90
+    );
+
+    private Double getRegionValue(Location loc) {
+        RegionManager regions = container.get(BukkitAdapter.adapt(loc.getWorld()));
+        ApplicableRegionSet regionSet = Objects.requireNonNull(regions).getApplicableRegions(BukkitAdapter.asBlockVector(loc));
+
+        for (ProtectedRegion region : regionSet) {
+            return REGION_MAP_RESISTANCE.get(region.getId());
+        }
+        return 0.0;
+    }
+
     public void applyMiningSpeedStat(Player player, int speedStat) {
         AttributeInstance attr = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
         if (attr == null) return;
@@ -152,7 +179,14 @@ public class MiningEventHandler implements Listener {
                 AttributeModifier.Operation.ADD_SCALAR
         );
 
+        AttributeModifier multiplyModifier = new AttributeModifier(
+                NamespacedKey.minecraft("region_value"),
+                getRegionValue(player.getLocation()),
+                AttributeModifier.Operation.MULTIPLY_SCALAR_1
+        );
+
         attr.addModifier(modifier);
+        attr.addModifier(multiplyModifier);
     }
 
     public void removeMiningSpeedModifier(Player player) {
@@ -197,6 +231,13 @@ public class MiningEventHandler implements Listener {
                 MiningDAO.MiningStats stats = miningDAO.getMiningStats(player);
                 int speedStat = stats.getSpeed() + getStat("speed", player) + ENCHANT_EFFICIENCY.get(getStat("enchant_speed", player)); // <- 이건 너가 구현한 메서드
                 applyMiningSpeedStat(player, speedStat);
+
+                //Attribute 값 확인.
+                double baseValue = attr.getBaseValue();
+                double totalValue = attr.getValue();
+                player.sendMessage(Component.text("기본 채광 속도: " + baseValue).color(NamedTextColor.GRAY));
+                player.sendMessage(Component.text("최종 채광 속도: " + totalValue).color(NamedTextColor.GRAY));
+
                 player.sendMessage(
                         Component.text("⸕ 채광 속도 적용됨 - ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
                                 .append(Component.text(String.format("%,d",  speedStat)).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false))
@@ -309,140 +350,216 @@ public class MiningEventHandler implements Listener {
         }.runTaskLater(plugin, 30L);
     }
 
-    /*
-    돌 -> 50%
-    광물 -> 50%
-        일반 -> 35%
-        딥 -> 10%
-        블럭 -> 5%
-     */
-
-    private final Map<Integer, List<Integer>> backAndFrontWeight = Map.of(
-            1, List.of(35, 15),
-            2, List.of(25, 25),
-            3, List.of(15, 35)
+    private static final Map<Integer, Map<Integer, Integer>> TIER_PROBABILITIES = Map.of(
+            1, Map.of( // Mine 1의 게이트 확률
+                    4, 5,
+                    3, 10,
+                    2, 25,
+                    1, 60
+            ),
+            2, Map.of( // Mine 2의 게이트 확률
+                    6, 3,
+                    5, 5,
+                    4, 7,
+                    3, 15,
+                    2, 25,
+                    1, 45
+            ),
+            3, Map.of( // Mine 3의 게이트 확률
+                    8, 2,
+                    7, 3,
+                    6, 5,
+                    5, 7,
+                    4, 10,
+                    3, 15,
+                    2, 25,
+                    1, 33
+            ),
+            4, Map.of( // Mine 4의 게이트 확률
+                    8, 5,
+                    7, 6,
+                    6, 8,
+                    5, 10,
+                    4, 15,
+                    3, 15,
+                    2, 20,
+                    1, 21
+            )
     );
 
-    private boolean getWeightedResult(int key) {
-        List<Integer> weights = backAndFrontWeight.getOrDefault(key, List.of(1, 1));
-        int totalWeight = weights.get(0) + weights.get(1);
-        int rand = new Random().nextInt(totalWeight);
+    private final Map<Integer, Map<Integer, List<Material>>> RESULT_ORE = Map.of(
+            0, Map.of(
+                    1, List.of(Material.STONE, Material.ANDESITE, Material.COBBLESTONE),
+                    2, List.of(Material.STONE, Material.STONE_BRICKS, Material.POLISHED_ANDESITE),
+                    3, List.of(Material.DEEPSLATE, Material.COBBLED_DEEPSLATE, Material.BASALT, Material.SMOOTH_BASALT),
+                    4, List.of(Material.DEEPSLATE_BRICKS, Material.DEEPSLATE_TILES, Material.CHISELED_DEEPSLATE, Material.CRACKED_DEEPSLATE_TILES)
+            ),
+            1, Map.of(
+                    1, List.of(Material.COAL_ORE, Material.COPPER_ORE),
+                    2, List.of(Material.IRON_ORE, Material.GOLD_ORE),
+                    3, List.of(Material.REDSTONE_ORE, Material.LAPIS_ORE),
+                    4, List.of(Material.EMERALD_ORE, Material.DIAMOND_ORE)
+            ),
+            2, Map.of(
+                    1, List.of(Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_COPPER_ORE),
+                    2, List.of(Material.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_GOLD_ORE),
+                    3, List.of(Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE),
+                    4, List.of(Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_DIAMOND_ORE)
+            ),
+            3, Map.of(
+                    1, List.of(Material.COAL_BLOCK, Material.WAXED_COPPER_BLOCK),
+                    2, List.of(Material.IRON_BLOCK, Material.GOLD_BLOCK),
+                    3, List.of(Material.REDSTONE_BLOCK, Material.LAPIS_BLOCK),
+                    4, List.of(Material.EMERALD_BLOCK, Material.DIAMOND_BLOCK)
+            )
+    );
 
-        return rand < weights.get(0);
+    public static boolean isSuccess(double chance) {
+        return ThreadLocalRandom.current().nextDouble() < chance;
     }
 
-    private boolean getRandomBoolean() {
-        return Math.random() < 0.5;
+    public static boolean isStone() {
+        return isSuccess(0.5);
     }
 
-    private final int[] WEIGHTS = {40, 40, 10, 10};
-    private final Map<Integer, List<Material>> gradesFront = Map.of(
-            1, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK),
-            2, List.of(Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE, Material.REDSTONE_BLOCK, Material.LAPIS_BLOCK),
-            3, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK),
-            4, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK)
-    );
-    private final Map<Integer, List<Material>> gradesBack = Map.of(
-            1, List.of(Material.IRON_ORE, Material.GOLD_ORE, Material.IRON_BLOCK, Material.GOLD_BLOCK),
-            2, List.of(Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_DIAMOND_ORE, Material.EMERALD_BLOCK, Material.DIAMOND_BLOCK),
-            3, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK),
-            4, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK)
-    );
+    public static boolean isBlock() {
+        return isSuccess(0.2);
+    }
 
-    private final int[] WEIGHTS_STONE = {10, 10, 10, 10};
-    private final Map<Integer, List<Material>> gradesStone = Map.of(
-            1, List.of(Material.STONE, Material.COBBLESTONE, Material.ANDESITE, Material.STONE),
-            2, List.of(Material.DEEPSLATE, Material.COBBLED_DEEPSLATE, Material.DEEPSLATE_BRICKS, Material.DEEPSLATE_TILES),
-            3, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK),
-            4, List.of(Material.COAL_ORE, Material.COPPER_ORE, Material.COAL_BLOCK, Material.COPPER_BLOCK)
-    );
+    public Material getRandomMaterial(List<Material> materials) {
+        int index = ThreadLocalRandom.current().nextInt(materials.size());
+        return materials.get(index);
+    }
 
-    private Material getWeightedBlockFromCategory(Map<Integer, List<Material>> categoryBlocks, Integer category, int[] weightList) {
-        List<Material> list = categoryBlocks.getOrDefault(category, List.of(Material.STONE));
-        if (list.size() != weightList.length) return Material.STONE; // 길이 안 맞으면 기본값 반환
-
-        int totalWeight = 100;
-
-        Random random = new Random();
-        int rand = random.nextInt(totalWeight);
-        int cumulative = 0;
-
-        for (int i = 0; i < weightList.length; i++) {
-            cumulative += weightList[i];
-            if (rand < cumulative) {
-                return list.get(i);
+    private Material getOreByGateSystem(Integer floor, Integer type) {
+        if(type == 0){
+            return getRandomMaterial(RESULT_ORE.get(type).get(floor));
+        }
+        else{
+            for(int tier = TIER_PROBABILITIES.get(floor).size(); tier > 1; tier--){
+                int chance = TIER_PROBABILITIES.get(floor).getOrDefault(tier, 0);
+                chance *= 1; // modified value 값 들어갈 예정.
+                if(ThreadLocalRandom.current().nextInt(100) < chance){
+                    return getRandomMaterial(RESULT_ORE.get(type).get(tier));
+                }
             }
         }
-
-        return list.getFirst(); // fallback
+        return getRandomMaterial(RESULT_ORE.get(type).get(1));
     }
 
-    //광산 광물 재생 시스템
+    private final Map<String, Integer> REGION_MAP = Map.of(
+            "mine1", 1,
+            "mine2", 2,
+            "mine3", 3,
+            "mine4", 4
+    );
+
+    private Integer isInTargetRegion(Location loc) {
+        RegionManager regions = container.get(BukkitAdapter.adapt(loc.getWorld()));
+        ApplicableRegionSet regionSet = Objects.requireNonNull(regions).getApplicableRegions(BukkitAdapter.asBlockVector(loc));
+
+        for (ProtectedRegion region : regionSet) {
+            return REGION_MAP.get(region.getId());
+        }
+        return 0;
+    }
+
+    private boolean isChainBreaking = false;
+
     @EventHandler
     public void onBlockBreakInMine(BlockBreakEvent event) {
+        Player player = event.getPlayer();
         Block block = event.getBlock();
         Location loc = block.getLocation();
         Block targetBlock = loc.getBlock();
 
-        int[] mine = isInTargetRegion(loc);
-        // 특정 리전에 있을 때만 작동
+        MiningDAO.MiningStats stats = miningDAO.getMiningStats(player);
 
-        if(mine[0] == 0 || mine[1] == 0){
+        // 수정 모드
+        if (plugin.getEditModePlayers().contains(player.getUniqueId())) {
             return;
         }
 
-        int floor = mine[0];
-        int diff = mine[1];
-
-        Material result;
-        if(getRandomBoolean()) {
-            if (getWeightedResult(diff)) {
-                result = getWeightedBlockFromCategory(gradesFront, floor, WEIGHTS);
-            } else {
-                result = getWeightedBlockFromCategory(gradesBack, floor, WEIGHTS);
-            }
-        }
-        else{
-            result = getWeightedBlockFromCategory(gradesStone, floor, WEIGHTS_STONE);
+        // 특정 리전에 있을 때만 작동
+        int floor = isInTargetRegion(loc);
+        if(floor == 0){
+            return;
         }
 
+        int type = isStone() ? 0 : (isBlock() ? 3 : (floor >= 3 ? 2 : 1));
         Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(Material.BEDROCK), 1L); // 1틱 뒤 베드락
-        Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(result), 60L); // 3초 뒤 광물 변환
+        Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(getOreByGateSystem(floor, type)), 60L); // 3초 뒤 광물 변환
+
+        if(isChainBreaking) { return; }
+        player.sendMessage(Component.text("연쇄 파괴 이벤트 입장"));
+        int spread = stats.getSpread();
+        player.sendMessage(Component.text("연쇄 파괴 값: " + spread));
+        applyBlockSpread(player, block, spread);
     }
 
-    private int[] isInTargetRegion(Location loc) {
-        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-        RegionManager regions = container.get(BukkitAdapter.adapt(loc.getWorld()));
-        if (regions == null) return new int[]{0, 0};
+    public List<Block> getNearbyValidBlocks(Block origin) {
+        List<Block> list = new ArrayList<>();
 
-        ApplicableRegionSet regionSet = regions.getApplicableRegions(BukkitAdapter.asBlockVector(loc));
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    // 자기 자신은 제외
+                    if (dx == 0 && dy == 0 && dz == 0) continue;
 
-        for (ProtectedRegion region : regionSet) {
-            int start = 0, end = 0;
-            if (region.getId().startsWith("mine_1")){
-                start = 1;
+                    Block target = origin.getRelative(dx, dy, dz);
+                    if (isValidSpreadTarget(target)) {
+                        list.add(target);
+                    }
+                }
             }
-            if (region.getId().startsWith("mine_2")){
-                start = 2;
-            }
-            if (region.getId().startsWith("mine_3")){
-                start = 3;
-            }
-            if (region.getId().startsWith("mine_4")){
-                start = 4;
-            }
-
-            if (region.getId().endsWith("_1")) {
-                end = 1;
-            }
-            if (region.getId().endsWith("_2")) {
-                end = 2;
-            }
-            if (region.getId().endsWith("_3")) {
-                end = 3;
-            }
-            return  new int[]{start, end};
         }
-        return new int[]{0, 0};
+        return list;
+    }
+
+    private boolean isValidSpreadTarget(Block block) {
+        if (!oreDropTable.containsKey(block.getType())) return false;
+
+        for (BlockFace face : BlockFace.values()) {
+            if (block.getRelative(face).getType() == Material.AIR) {
+                return true; // 최소 한 면이 AIR와 접해 있음
+            }
+        }
+
+        return false;
+    }
+
+    public void applyBlockSpread(Player player, Block origin, int blockSpread) {
+        if (blockSpread <= 0) return;
+
+        int guaranteed = blockSpread / 100;
+        int chance = blockSpread % 100;
+
+        // 확률로 1개 더
+        if (ThreadLocalRandom.current().nextInt(100) < chance) {
+            guaranteed++;
+        }
+
+        player.sendMessage(Component.text("갯수: " + guaranteed));
+
+        // 주변 블록 가져오기
+        List<Block> candidates = getNearbyValidBlocks(origin); // 반경 3 (7x7x7)
+        Collections.shuffle(candidates); // 랜덤하게 섞기
+
+        isChainBreaking = true;
+
+        int count = 0;
+        for (Block target : candidates) {
+            if (count >= guaranteed) break;
+
+            BlockBreakEvent fakeBreak = new BlockBreakEvent(target, player);
+            Bukkit.getPluginManager().callEvent(fakeBreak);
+
+            if (!fakeBreak.isCancelled()) {
+                target.setType(Material.AIR);
+                count++;
+            }
+        }
+
+        isChainBreaking = false;
     }
 }
