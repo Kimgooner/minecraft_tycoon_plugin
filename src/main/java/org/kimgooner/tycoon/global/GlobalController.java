@@ -5,6 +5,7 @@ import org.kimgooner.tycoon.db.DAOController;
 import org.kimgooner.tycoon.global.global.GlobalEventHandler;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.gui.menu.MenuEventHandler;
+import org.kimgooner.tycoon.global.npc.GlobalNPCController;
 import org.kimgooner.tycoon.global.warp.GlobalWarpController;
 import org.kimgooner.tycoon.job.mining.MiningCommandHandler;
 import org.kimgooner.tycoon.job.mining.MiningEventHandler;
@@ -15,6 +16,7 @@ public class GlobalController {
     private final DAOController daoController;
     private final GlobalGUIController globalGuiController;
     private final GlobalWarpController globalWarpController;
+    private final GlobalNPCController globalNPCController;
 
     public GlobalController(JavaPlugin plugin, Connection connection) {
         this.daoController = new DAOController(connection);
@@ -28,6 +30,7 @@ public class GlobalController {
                 daoController.getDataStorageDAO()
         );
         this.globalWarpController = new GlobalWarpController(plugin, globalGuiController);
+        this.globalNPCController = new GlobalNPCController(plugin, globalGuiController);
 
         //이벤트 핸들러
         plugin.getServer().getPluginManager().registerEvents(new GlobalEventHandler(daoController.getDataStorageDAO(), plugin), plugin);

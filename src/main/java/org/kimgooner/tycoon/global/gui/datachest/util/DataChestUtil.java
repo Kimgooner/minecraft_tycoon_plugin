@@ -1,8 +1,6 @@
 package org.kimgooner.tycoon.global.gui.datachest.util;
 
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
-import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -13,17 +11,23 @@ import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
 import java.util.List;
 
 public class DataChestUtil {
-    public static void populateItems(ChestGui gui, List<ItemStack> items, List<Integer> grades, List<Integer> amounts) {
-        OutlinePane pane = new OutlinePane(0, 1, 9, 4);
+    public static final int[] INNER_SLOTS = {
+            9, 10, 11, 12, 13, 14, 15, 16, 17,
+            18, 19, 20, 21, 22, 23, 24, 25, 26,
+            27, 28, 29, 30, 31, 32, 33, 34, 35,
+            36, 37, 38, 39, 40, 41, 42, 43, 44
+    };
 
+    public static void populateItems(ChestGui gui, List<ItemStack> items, List<Integer> grades, List<String> names, List<Integer> amounts) {
         for(int i = 0; i < items.size(); i++) {
             ItemStack item = items.get(i);
             Integer grade = grades.get(i);
+            String name = names.get(i);
             Integer amount = amounts.get(i);
 
             ItemStack element = new ItemBuilder(item)
                     .displayName(
-                            item.displayName().color(ItemGlowUtil.getDisplayColor(grade)).decoration(TextDecoration.ITALIC, false)
+                            Component.text(name).color(ItemGlowUtil.getDisplayColor(grade)).decoration(TextDecoration.ITALIC, false)
                     )
                     .addLore(
                             Component.text("데이터 보유량: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
@@ -31,8 +35,7 @@ public class DataChestUtil {
                                     .append(Component.text(" bits")).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
                     )
                     .build();
-            pane.addItem(new GuiItem(element));
+            gui.getInventory().setItem(INNER_SLOTS[i], element);
         }
-        gui.addPane(pane);
     }
 }

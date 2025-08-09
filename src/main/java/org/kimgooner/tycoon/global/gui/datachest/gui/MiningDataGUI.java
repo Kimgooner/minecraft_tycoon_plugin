@@ -35,6 +35,18 @@ public class MiningDataGUI {
             0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8
     );
 
+    List<String> itemNameList = List.of(
+            "돌",
+            "석탄",
+            "구리",
+            "철",
+            "금",
+            "레드스톤",
+            "청금석",
+            "에메랄드",
+            "다이아몬드"
+    );
+
     public MiningDataGUI(JavaPlugin plugin, DataStorageDAO dataStorageDAO, GlobalGUIController globalGuiController) {
         this.dataStorageDAO = dataStorageDAO;
         this.globalGuiController = globalGuiController;
@@ -48,6 +60,7 @@ public class MiningDataGUI {
     }
 
     public void open(Player player) {
+        ChestGui playerGUI = miningDataGUI.copy();
         List<DataStorageDAO.DataStorage> miningDataStorages = dataStorageDAO.getDataStorageByCategory(player, 1);
         List<Integer> amountList = List.of(
                 miningDataStorages.get(0).getAmount(),
@@ -60,8 +73,8 @@ public class MiningDataGUI {
                 miningDataStorages.get(7).getAmount(),
                 miningDataStorages.get(8).getAmount()
         );
-        DataChestUtil.populateItems(miningDataGUI, itemList, gradeList, amountList);
-        miningDataGUI.show(player);
+        playerGUI.show(player);
+        DataChestUtil.populateItems(playerGUI, itemList, gradeList, itemNameList, amountList);
     }
 
     public void toDataChest(InventoryClickEvent event) {

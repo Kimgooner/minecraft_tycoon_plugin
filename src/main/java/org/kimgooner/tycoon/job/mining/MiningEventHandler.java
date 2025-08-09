@@ -404,13 +404,21 @@ public class MiningEventHandler implements Listener {
                     1, List.of(Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_COPPER_ORE),
                     2, List.of(Material.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_GOLD_ORE),
                     3, List.of(Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE),
-                    4, List.of(Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_DIAMOND_ORE)
+                    4, List.of(Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_DIAMOND_ORE),
+                    5, List.of(Material.PRISMARINE, Material.POLISHED_DIORITE),
+                    6, List.of(Material.AMETHYST_BLOCK, Material.LIGHT_BLUE_GLAZED_TERRACOTTA),
+                    7, List.of(Material.LIGHT_GRAY_GLAZED_TERRACOTTA, Material.GRAY_GLAZED_TERRACOTTA),
+                    8, List.of(Material.CYAN_GLAZED_TERRACOTTA, Material.BLUE_GLAZED_TERRACOTTA)
             ),
             3, Map.of(
                     1, List.of(Material.COAL_BLOCK, Material.WAXED_COPPER_BLOCK),
                     2, List.of(Material.IRON_BLOCK, Material.GOLD_BLOCK),
                     3, List.of(Material.REDSTONE_BLOCK, Material.LAPIS_BLOCK),
-                    4, List.of(Material.EMERALD_BLOCK, Material.DIAMOND_BLOCK)
+                    4, List.of(Material.EMERALD_BLOCK, Material.DIAMOND_BLOCK),
+                    5, List.of(Material.WAXED_OXIDIZED_COPPER, Material.QUARTZ_BLOCK),
+                    6, List.of(Material.PURPLE_STAINED_GLASS, Material.LIGHT_BLUE_STAINED_GLASS),
+                    7, List.of(Material.WHITE_STAINED_GLASS, Material.GRAY_STAINED_GLASS),
+                    8, List.of(Material.CYAN_STAINED_GLASS, Material.BLUE_STAINED_GLASS)
             )
     );
 
@@ -447,7 +455,6 @@ public class MiningEventHandler implements Listener {
             for(int tier = TIER_PROBABILITIES.get(floor).size(); tier > 1; tier--){
                 double chance = (double) TIER_PROBABILITIES.get(floor).getOrDefault(tier, 0);
                 chance *= modifier; // modified value 값 들어갈 예정.
-                plugin.getLogger().info(tier + " " + chance);
                 if(ThreadLocalRandom.current().nextInt(100) < chance){
                     return getRandomMaterial(RESULT_ORE.get(type).get(tier));
                 }
@@ -500,9 +507,7 @@ public class MiningEventHandler implements Listener {
         Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(getOreByGateSystem(floor, type, stats.getLight())), 60L); // 3초 뒤 광물 변환
 
         if(isChainBreaking) { return; }
-        player.sendMessage(Component.text("연쇄 파괴 이벤트 입장"));
         int spread = stats.getSpread();
-        player.sendMessage(Component.text("연쇄 파괴 값: " + spread));
         applyBlockSpread(player, block, spread);
     }
 

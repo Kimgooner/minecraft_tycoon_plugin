@@ -1,8 +1,6 @@
 package org.kimgooner.tycoon.global.gui.menu;
 
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
-import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -34,17 +32,17 @@ public class MenuGUI {
         this.farmingDAO = farmingDAO;
         this.fishingDAO = fishingDAO;
         this.combatDAO = combatDAO;
-    }
 
-    public void open(Player player) {
         InputStream xmlStream = plugin.getResource("gui/menu/menu.xml");
         if (xmlStream == null) {
             throw new IllegalStateException("리소스를 찾을 수 없습니다.");
         }
         menuGUI = ChestGui.load(this, xmlStream);
         menuGUI.setOnGlobalClick(event -> event.setCancelled(true));
+    }
 
-        StaticPane pane = new StaticPane(0, 2, 9, 1);
+    public void open(Player player) {
+        ChestGui playerMenu = menuGUI.copy();
         MiningDAO.MiningStats miningStats = miningDAO.getMiningStats(player);
         FarmingDAO.FarmingStats farmingStats = farmingDAO.getFarmingStats(player);
         FishingDAO.FishingStats fishingStats = fishingDAO.getFishingStats(player);
@@ -141,15 +139,13 @@ public class MenuGUI {
                 .addLore(Component.text(" §f광물을 발견할 확률:"))
                 .addLore(Component.text(" §f풍부한 광물을 발견할 확률:"))
                 .build();
+        playerMenu.show(player);
 
-        pane.addItem(new GuiItem(statMining), 1, 0);
-        pane.addItem(new GuiItem(statFarming), 2, 0);
-        pane.addItem(new GuiItem(statPlayer), 4, 0);
-        pane.addItem(new GuiItem(statFishing), 6, 0);
-        pane.addItem(new GuiItem(statCombat), 7, 0);
-
-        menuGUI.addPane(pane);
-        menuGUI.show(player);
+        playerMenu.getInventory().setItem(19, statMining);
+        playerMenu.getInventory().setItem(20, statFarming);
+        playerMenu.getInventory().setItem(22, statPlayer);
+        playerMenu.getInventory().setItem(24, statFishing);
+        playerMenu.getInventory().setItem(25, statCombat);
     }
 
     public String makePercentBar(Integer cur, Integer max) {
