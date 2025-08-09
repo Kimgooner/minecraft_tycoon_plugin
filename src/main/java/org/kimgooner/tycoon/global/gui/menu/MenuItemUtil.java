@@ -1,4 +1,4 @@
-package org.kimgooner.tycoon.global.menu;
+package org.kimgooner.tycoon.global.gui.menu;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

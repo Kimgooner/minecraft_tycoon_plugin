@@ -431,14 +431,23 @@ public class MiningEventHandler implements Listener {
         return materials.get(index);
     }
 
-    private Material getOreByGateSystem(Integer floor, Integer type) {
+    private final Map<Integer, Integer> REGION_MAP_LIGHT = Map.of(
+            1, 0,
+            2, 500,
+            3,1000,
+            4,1500
+    );
+
+    private Material getOreByGateSystem(Integer floor, Integer type, Integer light) {
         if(type == 0){
             return getRandomMaterial(RESULT_ORE.get(type).get(floor));
         }
         else{
+            double modifier = 1 + (light - REGION_MAP_LIGHT.get(floor)) * 0.2 * 0.01;
             for(int tier = TIER_PROBABILITIES.get(floor).size(); tier > 1; tier--){
-                int chance = TIER_PROBABILITIES.get(floor).getOrDefault(tier, 0);
-                chance *= 1; // modified value 값 들어갈 예정.
+                double chance = (double) TIER_PROBABILITIES.get(floor).getOrDefault(tier, 0);
+                chance *= modifier; // modified value 값 들어갈 예정.
+                plugin.getLogger().info(tier + " " + chance);
                 if(ThreadLocalRandom.current().nextInt(100) < chance){
                     return getRandomMaterial(RESULT_ORE.get(type).get(tier));
                 }
@@ -488,7 +497,7 @@ public class MiningEventHandler implements Listener {
 
         int type = isStone() ? 0 : (isBlock() ? 3 : (floor >= 3 ? 2 : 1));
         Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(Material.BEDROCK), 1L); // 1틱 뒤 베드락
-        Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(getOreByGateSystem(floor, type)), 60L); // 3초 뒤 광물 변환
+        Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(getOreByGateSystem(floor, type, stats.getLight())), 60L); // 3초 뒤 광물 변환
 
         if(isChainBreaking) { return; }
         player.sendMessage(Component.text("연쇄 파괴 이벤트 입장"));

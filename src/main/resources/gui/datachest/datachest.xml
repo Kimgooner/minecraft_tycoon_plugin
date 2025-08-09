@@ -1,0 +1,60 @@
+<chestgui rows="3" title="§f데이터 보관함">
+    <outlinepane x="0" y="1" length="4" height="1">
+        <item id="iron_ingot" onClick="toMining">
+            <displayname>§e데이터 보관함 - 채광</displayname>
+            <lore>
+                <line>§f채광을 통해 획득하는 아이템 데이터를</line>
+                <line>§f보관하는 데이터 보관함으로 이동합니다.</line>
+                <line> </line>
+                <line>§e클릭하여 이동!</line>
+            </lore>
+        </item>
+        <item id="wheat" onClick="toFarming">
+            <displayname>§e데이터 보관함 - 농사</displayname>
+            <lore>
+                <line>§f농사를 통해 획득하는 아이템 데이터를</line>
+                <line>§f보관하는 데이터 보관함으로 이동합니다.</line>
+                <line> </line>
+                <line>§e클릭하여 이동!</line>
+            </lore>
+        </item>
+        <item id="cod" onClick="toFishing">
+            <displayname>§e데이터 보관함 - 닊시</displayname>
+            <lore>
+                <line>§f낚시를 통해 획득하는 아이템 데이터를</line>
+                <line>§f보관하는 데이터 보관함으로 이동합니다.</line>
+                <line> </line>
+                <line>§e클릭하여 이동!</line>
+            </lore>
+        </item>
+        <item id="rotten_flesh" onClick="toCombat">
+            <displayname>§e데이터 보관함 - 전투</displayname>
+            <lore>
+                <line>§f전투를 통해 획득하는 아이템 데이터를</line>
+                <line>§f보관하는 데이터 보관함으로 이동합니다.</line>
+                <line> </line>
+                <line>§e클릭하여 이동!</line>
+            </lore>
+        </item>
+    </outlinepane>
+    <staticpane x="0" y="2" length="9" height="1">
+        <item id="arrow" x="4" y="0" onClick="toMenu">
+            <displayname>§e§l뒤로 가기</displayname>
+        </item>
+    </staticpane>
+    <staticpane x="0" y="0" length="9" height="1">
+        <item id="ender_chest" x="4" y="0">
+            <displayname>§f§l데이터 보관함</displayname>
+        </item>
+    </staticpane>
+    <outlinepane x="0" y="2" length="9" height="1" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane">
+            <displayname> </displayname>
+        </item>
+    </outlinepane>
+    <outlinepane x="0" y="0" length="9" height="1" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane">
+            <displayname> </displayname>
+        </item>
+    </outlinepane>
+</chestgui>

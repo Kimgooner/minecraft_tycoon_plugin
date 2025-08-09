@@ -1,10 +1,5 @@
-package org.kimgooner.tycoon.global.menu;
+package org.kimgooner.tycoon.global.gui.menu;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,18 +8,13 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.inventory.ItemStack;
-import org.kimgooner.tycoon.global.datachest.DataChestGUI;
+import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 
 public class MenuEventHandler implements Listener {
-    private final MenuGUI menuGUI;
-    private final DataChestGUI dataChestGUI;
-
-    public MenuEventHandler(MenuGUI menuGUI, DataChestGUI dataChestGUI){
-        this.menuGUI = menuGUI;
-        this.dataChestGUI = dataChestGUI;
+    private final GlobalGUIController controller;
+    public MenuEventHandler(GlobalGUIController controller) {
+        this.controller = controller;
     }
-
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (MenuItemUtil.isMenuItem(event.getCurrentItem()) || MenuItemUtil.isMenuItem(event.getCursor())) {
@@ -61,22 +51,7 @@ public class MenuEventHandler implements Listener {
     public void onInteract(PlayerInteractEvent event){
         if(MenuItemUtil.isMenuItem(event.getItem())){
             event.setCancelled(true);
-            menuGUI.open(event.getPlayer());
-        }
-    }
-
-    @EventHandler
-    public void onMenuClick(InventoryClickEvent event) {
-        Player player = (Player) event.getWhoClicked();
-
-        if(!event.getView().title().equals(Component.text("메뉴").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))) return;
-        event.setCancelled(true);
-
-        ItemStack clickedItem = event.getCurrentItem();
-        if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
-
-        switch (event.getSlot()){
-            case 30 -> dataChestGUI.open(player);
+            controller.openMenu(event.getPlayer());
         }
     }
 }

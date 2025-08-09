@@ -1,0 +1,276 @@
+package org.kimgooner.tycoon.global.gui.menu;
+
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import com.github.stefvanschie.inventoryframework.pane.StaticPane;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.db.dao.*;
+import org.kimgooner.tycoon.global.gui.GlobalGUIController;
+import org.kimgooner.tycoon.global.item.global.ItemBuilder;
+
+import java.io.InputStream;
+
+public class MenuGUI {
+    private final JavaPlugin plugin;
+    private final GlobalGUIController globalGuiController;
+    private final MemberDAO memberDAO;
+    private final MiningDAO miningDAO;
+    private final FarmingDAO farmingDAO;
+    private final FishingDAO fishingDAO;
+    private final CombatDAO combatDAO;
+
+    private ChestGui menuGUI;
+
+    public MenuGUI(JavaPlugin plugin, GlobalGUIController globalGuiController, MemberDAO memberDAO, MiningDAO miningDAO, FarmingDAO farmingDAO, FishingDAO fishingDAO, CombatDAO combatDAO) {
+        this.plugin = plugin;
+        this.globalGuiController = globalGuiController;
+        this.memberDAO = memberDAO;
+        this.miningDAO = miningDAO;
+        this.farmingDAO = farmingDAO;
+        this.fishingDAO = fishingDAO;
+        this.combatDAO = combatDAO;
+    }
+
+    public void open(Player player) {
+        InputStream xmlStream = plugin.getResource("gui/menu/menu.xml");
+        if (xmlStream == null) {
+            throw new IllegalStateException("리소스를 찾을 수 없습니다.");
+        }
+        menuGUI = ChestGui.load(this, xmlStream);
+        menuGUI.setOnGlobalClick(event -> event.setCancelled(true));
+
+        StaticPane pane = new StaticPane(0, 2, 9, 1);
+        MiningDAO.MiningStats miningStats = miningDAO.getMiningStats(player);
+        FarmingDAO.FarmingStats farmingStats = farmingDAO.getFarmingStats(player);
+        FishingDAO.FishingStats fishingStats = fishingDAO.getFishingStats(player);
+        CombatDAO.CombatStats combatStats = combatDAO.getCombatStats(player);
+
+        ItemStack statMining = new ItemBuilder(Material.STONE_PICKAXE)
+                .hideAttributeModifiers()
+                .displayName(Component.text("§f채광 스텟"))
+                .addLore(Component.text("§7숙련도:"))
+                .addLore(Component.text(String.format(" §f레벨: %,d", miningStats.getLevel())))
+                .addLore(Component.text(String.format(" §f경험치: %,d", miningStats.getExp())))
+                .addLore(Component.text(" " + makePercentBar(miningStats.getExp(), 100)))
+                .addLore(Component.text(" §7레벨 보너스:"))
+                .addLore(Component.text(String.format("  §f채광 속도: §6+%,d ⸕", miningStats.getLevel() * 5)))
+                .addLore(Component.text(String.format("  §f채광 속도: §6+%,d ☘", miningStats.getLevel() * 4)))
+                .addLore(Component.text("§7스텟:"))
+                .addLore(Component.text(String.format(" §f채광 속도: §6%,d ⸕",  miningStats.getSpeed())))
+                .addLore(Component.text(String.format(" §f채광 행운: §6%,d ☘",  miningStats.getFortune())))
+                .addLore(Component.text(String.format(" §f연쇄 파괴: §e%,d ▚",  miningStats.getSpread())))
+                .addLore(Component.text(String.format(" §f순수: §5%,d ✧",  miningStats.getPristine())))
+                .addLore(Component.text(String.format(" §f빛: §e%,d ✦",  miningStats.getLight())))
+                .addLore(Component.text("§7특수 스텟:"))
+                .addLore(Component.text(" §f채광 경험치 획득량:"))
+                .addLore(Component.text(" §f광석 가루 획득량:"))
+                .addLore(Component.text(" §f광물을 발견할 확률:"))
+                .addLore(Component.text(" §f풍부한 광물을 발견할 확률:"))
+                .build();
+        ItemStack statFarming = new ItemBuilder(Material.DIAMOND_HOE)
+                .hideAttributeModifiers()
+                .displayName(Component.text("§f농사 스텟"))
+                .addLore(Component.text("§7숙련도:"))
+                .addLore(Component.text(" §f레벨:"))
+                .addLore(Component.text(" §f경험치:"))
+                .addLore(Component.text(" " + makePercentBar(43, 100)))
+                .addLore(Component.text(" §7레벨 보너스:"))
+                .addLore(Component.text("  §f채광 속도: §6+5 ⸕"))
+                .addLore(Component.text("  §f채광 행운: §6+4 ☘"))
+                .addLore(Component.text("§7스텟:"))
+                .addLore(Component.text(" §f채광 속도:"))
+                .addLore(Component.text(" §f채광 행운:"))
+                .addLore(Component.text(" §f연쇄 파괴:"))
+                .addLore(Component.text(" §f빛:"))
+                .addLore(Component.text(" §f순수:"))
+                .addLore(Component.text("§7특수 스텟:"))
+                .addLore(Component.text(" §f채광 경험치 획득량:"))
+                .addLore(Component.text(" §f광석 가루 획득량:"))
+                .addLore(Component.text(" §f광물을 발견할 확률:"))
+                .addLore(Component.text(" §f풍부한 광물을 발견할 확률:"))
+                .build();
+        ItemStack statPlayer = new ItemBuilder(Material.SUNFLOWER)
+                .displayName(Component.text("§f플레이어 스텟"))
+                .build();
+        ItemStack statFishing = new ItemBuilder(Material.FISHING_ROD)
+                .hideAttributeModifiers()
+                .displayName(Component.text("§f낚시 스텟"))
+                .addLore(Component.text("§7숙련도:"))
+                .addLore(Component.text(" §f레벨:"))
+                .addLore(Component.text(" §f경험치:"))
+                .addLore(Component.text(" " + makePercentBar(43, 100)))
+                .addLore(Component.text(" §7레벨 보너스:"))
+                .addLore(Component.text("  §f채광 속도: §6+5 ⸕"))
+                .addLore(Component.text("  §f채광 행운: §6+4 ☘"))
+                .addLore(Component.text("§7스텟:"))
+                .addLore(Component.text(" §f채광 속도:"))
+                .addLore(Component.text(" §f채광 행운:"))
+                .addLore(Component.text(" §f연쇄 파괴:"))
+                .addLore(Component.text(" §f빛:"))
+                .addLore(Component.text(" §f순수:"))
+                .addLore(Component.text("§7특수 스텟:"))
+                .addLore(Component.text(" §f채광 경험치 획득량:"))
+                .addLore(Component.text(" §f광석 가루 획득량:"))
+                .addLore(Component.text(" §f광물을 발견할 확률:"))
+                .addLore(Component.text(" §f풍부한 광물을 발견할 확률:"))
+                .build();
+        ItemStack statCombat = new ItemBuilder(Material.IRON_SWORD)
+                .hideAttributeModifiers()
+                .displayName(Component.text("§f전투 스텟"))
+                .addLore(Component.text("§7숙련도:"))
+                .addLore(Component.text(" §f레벨:"))
+                .addLore(Component.text(" §f경험치:"))
+                .addLore(Component.text(" " + makePercentBar(43, 100)))
+                .addLore(Component.text(" §7레벨 보너스:"))
+                .addLore(Component.text("  §f채광 속도: §6+5 ⸕"))
+                .addLore(Component.text("  §f채광 행운: §6+4 ☘"))
+                .addLore(Component.text("§7스텟:"))
+                .addLore(Component.text(" §f채광 속도:"))
+                .addLore(Component.text(" §f채광 행운:"))
+                .addLore(Component.text(" §f연쇄 파괴:"))
+                .addLore(Component.text(" §f빛:"))
+                .addLore(Component.text(" §f순수:"))
+                .addLore(Component.text("§7특수 스텟:"))
+                .addLore(Component.text(" §f채광 경험치 획득량:"))
+                .addLore(Component.text(" §f광석 가루 획득량:"))
+                .addLore(Component.text(" §f광물을 발견할 확률:"))
+                .addLore(Component.text(" §f풍부한 광물을 발견할 확률:"))
+                .build();
+
+        pane.addItem(new GuiItem(statMining), 1, 0);
+        pane.addItem(new GuiItem(statFarming), 2, 0);
+        pane.addItem(new GuiItem(statPlayer), 4, 0);
+        pane.addItem(new GuiItem(statFishing), 6, 0);
+        pane.addItem(new GuiItem(statCombat), 7, 0);
+
+        menuGUI.addPane(pane);
+        menuGUI.show(player);
+    }
+
+    public String makePercentBar(Integer cur, Integer max) {
+        if (max == 0) return "§f□□□□□□□□□□"; // 0으로 나누는 상황 방지
+
+        double percent = (double) cur / max;
+        int yellowBars = (int) Math.floor(percent * 10); // 0~10칸
+
+        StringBuilder bar = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            if (i < yellowBars) {
+                bar.append("§e■"); // 노란색
+            } else {
+                bar.append("§f■"); // 흰색
+            }
+        }
+        return bar.toString();
+    }
+
+    public void toDataChest(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        globalGuiController.openDataChest(event);
+    }
+
+    public void toClose(InventoryClickEvent event) {
+        globalGuiController.closeInventory(event);
+    }
+
+    /* LEGACY
+
+    public void open(Player player) {
+        Inventory gui = Bukkit.createInventory(null, 45,
+                Component.text("메뉴").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+        );
+
+        //플레이어 정보 - 일반
+        String uuid = player.getUniqueId().toString();
+        long money = memberDAO.getMoney(player);
+
+        //플레이어 정보 - 채광
+        MiningDAO.MiningStats miningStats = miningDAO.getMiningStats(player);
+
+        //플레이어 정보 - 농사
+        FarmingDAO.FarmingStats farmingStats = farmingDAO.getFarmingStats(player);
+
+        //플레이어 정보 - 낚시
+        FishingDAO.FishingStats fishingStats = fishingDAO.getFishingStats(player);
+
+        //플레이어 정보 - 전투
+        CombatDAO.CombatStats combatStats = combatDAO.getCombatStats(player);
+
+        //플레이어 정보 - 기타 ...
+
+        ItemStack playerStat = new ItemBuilder(ItemUtil.createPlayerHead(player))
+                .displayName(Component.text(player.getName()).color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(" 정보")).color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false))
+                .addLore(Component.text("소지금: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%,dG", money)).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("누적 접속 시간: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%dH", money)).color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)))
+                .build();
+        gui.setItem(11, playerStat);
+
+        ItemStack miningStat = new ItemBuilder(Material.GOLDEN_PICKAXE)
+                .hideAttributeModifiers()
+                .displayName(Component.text("채광 정보").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text("                       ")))
+                .addLore(Component.text("채광 속도: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ⸕", miningStats.getSpeed())).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("채광 행운: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ☘", miningStats.getFortune())).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("연쇄 파괴: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ▚", miningStats.getSpread())).color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("순수: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ✧", miningStats.getPristine())).color(NamedTextColor.DARK_PURPLE).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("빛: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ✦", miningStats.getLight())).color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)))
+                .build();
+        gui.setItem(12, miningStat);
+
+        ItemStack farmingStat = new ItemBuilder(Material.DIAMOND_HOE)
+                .hideAttributeModifiers()
+                .displayName(Component.text("농사 정보").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text("                       ")))
+                .addLore(Component.text("농사 행운: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ☘", farmingStats.getFortune())).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("풍요: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ❈", farmingStats.getRichness())).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)))
+                .build();
+        gui.setItem(13, farmingStat);
+
+        ItemStack fishingStat = new ItemBuilder(Material.FISHING_ROD)
+                .hideAttributeModifiers()
+                .displayName(Component.text("낚시 정보").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text("                       ")))
+                .addLore(Component.text("낚시 속도: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ☂", fishingStats.getSpeed())).color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("다중 루어: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ⚓", fishingStats.getMultihook())).color(NamedTextColor.BLUE).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("경이: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ❂", fishingStats.getWonder())).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)))
+                .build();
+        gui.setItem(14, fishingStat);
+
+    ItemStack combatStat = new ItemBuilder(Material.NETHERITE_SWORD)
+                .hideAttributeModifiers()
+                .displayName(Component.text("전투 정보").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text("                       ")))
+                .addLore(Component.text("추가 체력: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ❤", combatStats.getHealth())).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("힘: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ❁", combatStats.getStregnth())).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("치명타 확률: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ☣", combatStats.getCritchance())).color(NamedTextColor.BLUE).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("치명타 피해: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ☠", combatStats.getCritdamage())).color(NamedTextColor.BLUE).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text("추가 어빌리티 피해: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%d ๑", combatStats.getAbility())).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)))
+                .build();
+        gui.setItem(15, combatStat);
+        player.openInventory(gui);
+    }
+     */
+}

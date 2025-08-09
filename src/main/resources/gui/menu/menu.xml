@@ -1,0 +1,59 @@
+<chestgui rows="6" title="§f메뉴">
+    <staticpane x="0" y="5" length="9" height="1">
+        <item id="barrier" x="4" y="0" onClick="toClose">
+            <displayname>§c닫기</displayname>
+        </item>
+    </staticpane>
+    <outlinepane x="0" y="0" length="9" height="1" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane">
+            <displayname> </displayname>
+        </item>
+    </outlinepane>
+    <outlinepane x="0" y="5" length="9" height="1" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane">
+            <displayname> </displayname>
+        </item>
+    </outlinepane>
+    <staticpane x="0" y="0" length="9" height="1">
+        <item id="nether_star" x="4" y="0">
+            <displayname>§f§l메뉴</displayname>
+        </item>
+    </staticpane>
+    <staticpane x="0" y="3" length="9" height="1">
+        <item id="compass" x="2" y="0">
+            <displayname>§f빠른 이동</displayname>
+            <lore>
+                <line>§8지정된 지역으로 빠르게 이동합니다.</line>
+                <line> </line>
+                <line>§e클릭하여 이동!</line>
+            </lore>
+        </item>
+        <item id="ender_chest" x="3" y="0" onClick="toDataChest">
+            <displayname>§f데이터 보관함</displayname>
+            <lore>
+                <line>§8자동으로 아이템을 보관하는</line>
+                <line>§8데이터 보관함을 확인 합니다.</line>
+                <line> </line>
+                <line>§e클릭하여 이동!</line>
+            </lore>
+        </item>
+        <item id="allay_spawn_egg" x="5" y="0">
+            <displayname>§f펫</displayname>
+            <lore>
+                <line>§8가지고 있는 펫 목록을 확인하고</line>
+                <line>§8장착할 펫을 선택합니다.</line>
+                <line> </line>
+                <line>§e클릭하여 이동!</line>
+            </lore>
+        </item>
+        <item id="painting" x="6" y="0">
+            <displayname>§f이벤트</displayname>
+            <lore>
+                <line>§8현재 진행 중인 이벤트와</line>
+                <line>§8예정된 이벤트를 확인합니다.</line>
+                <line> </line>
+                <line>§e클릭하여 이동!</line>
+            </lore>
+        </item>
+    </staticpane>
+</chestgui>

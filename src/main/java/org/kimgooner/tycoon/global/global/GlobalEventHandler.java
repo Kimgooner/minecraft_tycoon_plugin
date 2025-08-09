@@ -11,7 +11,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
-import org.kimgooner.tycoon.global.menu.MenuItemUtil;
+import org.kimgooner.tycoon.global.gui.menu.MenuItemUtil;
 
 public class GlobalEventHandler implements Listener {
     private final DataStorageDAO dataStorageDAO;

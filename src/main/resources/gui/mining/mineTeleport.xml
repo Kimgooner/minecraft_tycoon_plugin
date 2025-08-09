@@ -1,0 +1,93 @@
+<chestgui rows="3" title="§f광산 입장">
+    <outlinepane x="1" y="1" length="9" height="1" gap="1">
+        <item id="calcite" onClick="toMineTeleportZone1">
+            <displayname>§f§l버려진 채석장</displayname>
+            <lore>
+                <line>§8오래 전에는 활발하게 광석 채굴이 이뤄지던 곳이지만,</line>
+                <line>§8이제는 폐쇄되어 사용되지 않는다.</line>
+                <line> </line>
+                <line>§f최소 §e빛 ✦ §f요구량: §e0</line>
+                <line>§f채광 속도 배율: §c0.7x</line>
+                <line> </line>
+                <line>§f아래 광물을 발견 가능합니다.</line>
+                <line>§f- §8돌</line>
+                <line>§f- §7석탄§f, §7구리</line>
+                <line>§f- §a철§f, §a금</line>
+                <line>§f- §9레드스톤§f, §9청금석</line>
+                <line>§f- §5에메랄드§f, §7다이아몬드</line>
+            </lore>
+        </item>
+        <item id="polished_andesite" onClick="toMineTeleportZone2">
+            <displayname>§f§l깊은 동굴</displayname>
+            <lore>
+                <line>§8높은 압력으로 인해 지반이 아주 단단한 장소.</line>
+                <line>§8대신 그만큼 희귀한 광물이 많이 분포되어 있다.</line>
+                <line> </line>
+                <line>§f최소 §e빛 ✦ §f요구량: §e500</line>
+                <line>§f채광 속도 배율: §c0.5x</line>
+                <line> </line>
+                <line>§f아래 광물을 발견 가능합니다.</line>
+                <line>§f- §8돌</line>
+                <line>§f- §7석탄§f, §7구리</line>
+                <line>§f- §a철§f, §a금</line>
+                <line>§f- §9레드스톤§f, §9청금석</line>
+                <line>§f- §5에메랄드§f, §7다이아몬드</line>
+                <line>§f- §6미스릴§f, §6티타늄</line>
+                <line>§f- §d자수정§f, §d아쿠아마린</line>
+            </lore>
+        </item>
+        <item id="deepslate" onClick="toMineTeleportZone3">
+            <displayname>§f§l미탐사 구역</displayname>
+            <lore>
+                <line>§8적절한 장비 없이는 도달하자 마자 압력에 짓이겨지는 장소.</line>
+                <line>§8위험을 감수할 만한 가치가 있을까?</line>
+                <line> </line>
+                <line>§f최소 §e빛 ✦ §f요구량: §e1000</line>
+                <line>§f채광 속도 배율: §c0.3x</line>
+                <line> </line>
+                <line>§f아래 광물을 발견 가능합니다.</line>
+                <line>§f- §8돌</line>
+                <line>§f- §7석탄§f, §7구리</line>
+                <line>§f- §a철§f, §a금</line>
+                <line>§f- §9레드스톤§f, §9청금석</line>
+                <line>§f- §5에메랄드§f, §7다이아몬드</line>
+                <line>§f- §6미스릴§f, §6티타늄</line>
+                <line>§f- §d자수정§f, §d아쿠아마린</line>
+                <line>§f- §b오팔§f, §b오닉스</line>
+                <line>§f- §3폴룩사이트§f, §3탄탈라이트</line>
+            </lore>
+        </item>
+        <item id="deepslate_tiles" onClick="toMineTeleportZone4">
+            <displayname>§f§l종착점</displayname>
+            <lore>
+                <line>§8...</line>
+                <line> </line>
+                <line>§f최소 §e빛 ✦ §f요구량: §e1500</line>
+                <line>§f채광 속도 배율: §c0.1x</line>
+                <line> </line>
+                <line>§f아래 광물을 발견 가능합니다.</line>
+                <line>§f- §8돌</line>
+                <line>§f- §7석탄§f, §7구리</line>
+                <line>§f- §a철§f, §a금</line>
+                <line>§f- §9레드스톤§f, §9청금석</line>
+                <line>§f- §5에메랄드§f, §7다이아몬드</line>
+                <line>§f- §6미스릴§f, §6티타늄</line>
+                <line>§f- §d자수정§f, §d아쿠아마린</line>
+                <line>§f- §b오팔§f, §b오닉스</line>
+                <line>§f- §3폴룩사이트§f, §3탄탈라이트</line>
+            </lore>
+        </item>
+    </outlinepane>
+
+    <staticpane x="0" y="2" length="9" height="1">
+        <item id="barrier" x="4" y="0">
+            <displayname>§c나가기</displayname>
+        </item>
+    </staticpane>
+    <outlinepane x="0" y="0" length="9" height="1" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane" />
+    </outlinepane>
+    <outlinepane x="0" y="2" length="9" height="1" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane" />
+    </outlinepane>
+</chestgui>

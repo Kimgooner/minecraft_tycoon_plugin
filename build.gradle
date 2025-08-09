@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("com.gradleup.shadow") version "8.3.0"
 }
 
 group = 'org.kimgooner'
@@ -22,7 +23,13 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
-    compileOnly ("com.sk89q.worldguard:worldguard-bukkit:7.0.14")
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.14")
+    implementation("com.github.stefvanschie.inventoryframework:IF:0.11.3")
+}
+
+shadowJar {
+    relocate 'com.github.stefvanschie.inventoryframework', 'org.kimgooner.tycoon.inventoryframework'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks {
@@ -31,6 +38,7 @@ tasks {
         // This is the only required configuration besides applying the plugin.
         // Your plugin's jar (or shadowJar if present) will be used automatically.
         minecraftVersion("1.21")
+        dependsOn(shadowJar)
     }
 }
 
@@ -43,10 +51,16 @@ if (envFile.exists()) {
 }
 def outputPath = env.getProperty('OUTPUT_PATH') ?: 'build/libs'
 
-tasks.jar{
-    /*
+tasks.build {
+    dependsOn shadowJar
+}
 
-     */
+tasks.jar{
+    archiveFileName = 'Tycoon.jar'
+    destinationDirectory = file(outputPath)
+}
+
+tasks.shadowJar {
     archiveFileName = 'Tycoon.jar'
     destinationDirectory = file(outputPath)
 }
@@ -58,6 +72,10 @@ java {
     targetCompatibility = javaVersion
     if (JavaVersion.current() < javaVersion) {
         toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     }
 }
 
