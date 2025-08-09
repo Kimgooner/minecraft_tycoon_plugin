@@ -1,0 +1,11 @@
+<chestgui rows="6" title="§f메뉴">
+    <outlinepane x="0" y="5" length="9" height="1" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane">
+            <displayer>
+            </displayer>
+        </item>
+    </outlinepane>
+    <outlinepane x="0" y="5" length="9" height="1" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane" />
+    </outlinepane>
+</chestgui>

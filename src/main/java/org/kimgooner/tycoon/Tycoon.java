@@ -2,6 +2,7 @@ package org.kimgooner.tycoon;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.DatabaseManager;
+import org.kimgooner.tycoon.discord.DiscordWebhookSender;
 import org.kimgooner.tycoon.global.GlobalController;
 import org.kimgooner.tycoon.global.gui.menu.MenuItemUtil;
 import org.kimgooner.tycoon.global.item.job.mining.PickaxeList;
@@ -29,6 +30,9 @@ public final class Tycoon extends JavaPlugin {
         //기타
         MenuItemUtil.init(this);
         PickaxeList pickaxeList = new PickaxeList(this);
+
+        //DiscordWebhook
+        getServer().getPluginManager().registerEvents(new DiscordWebhookSender(this), this);
     }
 
     @Override

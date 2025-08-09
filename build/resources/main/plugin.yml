@@ -2,7 +2,6 @@ name: Tycoon
 version: '1.0-SNAPSHOT'
 main: org.kimgooner.tycoon.Tycoon
 api-version: '1.21'
-depend: [Citizens]
 commands:
   mining:
     description: 채광 명령어
