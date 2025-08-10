@@ -6,7 +6,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.UUID;
 
 public class MemberDAO {
     private final Connection conn;
@@ -15,10 +14,24 @@ public class MemberDAO {
         this.conn = conn;
     }
 
-    public void insertOrUpdateMember(UUID uuid) {
-        try (PreparedStatement ps = conn.prepareStatement(
-                "INSERT OR IGNORE INTO members (uuid, money) VALUES (?, 0)")) {
-            ps.setString(1, uuid.toString());
+    public boolean hasData(Player player) {
+        String sql = "SELECT 1 FROM members WHERE uuid = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, player.getUniqueId().toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void init(Player player) {
+        if (hasData(player)) return; // 이미 있으면 무시
+        String sql = "INSERT INTO members (uuid, money) VALUES (?, 0)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, player.getUniqueId().toString());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -37,15 +50,50 @@ public class MemberDAO {
         return 0L;
     }
 
-    public void updateMoney(UUID uuid, Integer amount) {
+    public void setMoney(Player player, Integer amount) {
         try (PreparedStatement ps = conn.prepareStatement(
                 "UPDATE members SET money = ? WHERE uuid = ?")) {
             ps.setInt(1, amount);
-            ps.setString(2, uuid.toString());
+            ps.setString(2, player.getUniqueId().toString());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean plusMoney(Player player, Integer amount) {
+        Long newMoney = getMoney(player) + amount;
+        try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE members SET money = ? WHERE uuid = ?")) {
+            conn.setAutoCommit(false);
+            ps.setInt(1, amount);
+            ps.setString(2, player.getUniqueId().toString());
+            ps.executeUpdate();
+            conn.commit();
+            conn.setAutoCommit(true);
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean minusMoney(Player player, Integer amount) {
+        Long newMoney = getMoney(player) - amount;
+        if (newMoney < 0) return false;
+        try (PreparedStatement ps = conn.prepareStatement(
+                "UPDATE members SET money = ? WHERE uuid = ?")) {
+            conn.setAutoCommit(false);
+            ps.setInt(1, amount);
+            ps.setString(2, player.getUniqueId().toString());
+            ps.executeUpdate();
+            conn.commit();
+            conn.setAutoCommit(true);
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
 

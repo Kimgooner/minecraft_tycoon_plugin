@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.Tycoon;
-import org.kimgooner.tycoon.db.dao.MiningDAO;
+import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
 import org.kimgooner.tycoon.global.item.job.mining.PickaxeList;
 
 import java.util.Set;

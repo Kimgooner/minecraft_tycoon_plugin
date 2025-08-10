@@ -45,6 +45,7 @@ public class MineTeleportGUI {
             throw new IllegalStateException("리소스를 찾을 수 없습니다.");
         }
         mineTeleportGUI = ChestGui.load(this, xmlStream);
+        mineTeleportGUI.setOnGlobalClick(event -> event.setCancelled(true));
     }
 
     public void teleportToMineZone(Player player, Integer floor) {

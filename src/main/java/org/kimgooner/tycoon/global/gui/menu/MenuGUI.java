@@ -8,6 +8,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.dao.*;
+import org.kimgooner.tycoon.db.dao.combat.CombatDAO;
+import org.kimgooner.tycoon.db.dao.farming.FarmingDAO;
+import org.kimgooner.tycoon.db.dao.fishing.FishingDAO;
+import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.item.global.ItemBuilder;
 

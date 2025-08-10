@@ -4,7 +4,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.dao.*;
+import org.kimgooner.tycoon.db.dao.combat.CombatDAO;
+import org.kimgooner.tycoon.db.dao.farming.FarmingDAO;
+import org.kimgooner.tycoon.db.dao.fishing.FishingDAO;
+import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
 import org.kimgooner.tycoon.global.gui.datachest.gui.*;
+import org.kimgooner.tycoon.global.gui.job.mining.CaveHeartGUI;
+import org.kimgooner.tycoon.global.gui.job.mining.CaveHeartUpGUI;
 import org.kimgooner.tycoon.global.gui.job.mining.MineTeleportGUI;
 import org.kimgooner.tycoon.global.gui.menu.MenuGUI;
 
@@ -17,6 +23,8 @@ public class GlobalGUIController {
     private final CombatDataGUI combatDataGUI;
 
     private final MineTeleportGUI mineTeleportGUI;
+    private final CaveHeartGUI caveHeartGUI;
+    private final CaveHeartUpGUI caveHeartUpGUI;
 
     public GlobalGUIController(
             JavaPlugin plugin,
@@ -38,6 +46,8 @@ public class GlobalGUIController {
         this.fishingDataGUI = new FishingDataGUI(plugin, dataStorageDAO, this);
 
         this.mineTeleportGUI = new MineTeleportGUI(plugin, this);
+        this.caveHeartGUI = new CaveHeartGUI(plugin, this);
+        this.caveHeartUpGUI = new CaveHeartUpGUI(plugin, this);
     }
 
     public void closeInventory(InventoryClickEvent event) {
@@ -76,5 +86,13 @@ public class GlobalGUIController {
     public void openCombatData(InventoryClickEvent event) {
         Player p = (Player) event.getWhoClicked();
         combatDataGUI.open(p);
+    }
+
+    public void openCaveHeart(Player player) {
+        caveHeartGUI.open(player);
+    }
+
+    public void openCaveHeartUp(Player player) {
+        caveHeartUpGUI.open(player);
     }
 }

@@ -84,10 +84,9 @@
             <displayname>§c나가기</displayname>
         </item>
     </staticpane>
-    <outlinepane x="0" y="0" length="9" height="1" priority="lowest" repeat="true">
-        <item id="black_stained_glass_pane" />
-    </outlinepane>
-    <outlinepane x="0" y="2" length="9" height="1" priority="lowest" repeat="true">
-        <item id="black_stained_glass_pane" />
+    <outlinepane x="0" y="0" length="9" height="3" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane">
+            <displayname> </displayname>
+        </item>
     </outlinepane>
 </chestgui>

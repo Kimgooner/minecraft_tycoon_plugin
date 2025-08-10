@@ -31,4 +31,13 @@ public class EnvLoader {
     public String getWebhookUrl() {
         return props.getProperty("WEBHOOK_URL");
     }
+    public String getDBUrl() {
+        return props.getProperty("DB_URL");
+    }
+    public String getUSERNAME() {
+        return props.getProperty("USER_NAME");
+    }
+    public String getUSERPASSWORD() {
+        return props.getProperty("USER_PASSWORD");
+    }
 }

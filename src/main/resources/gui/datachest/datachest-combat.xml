@@ -1,18 +1,17 @@
 <chestgui rows="6" title="§f데이터 보관함 - 전투">
     <staticpane x="0" y="0" length="9" height="1">
         <item id="iron_ingot" x="4" y="0">
-            <displayname>§f§l데이터 보관함 - 전투</displayname>
+            <displayname>§f데이터 보관함 - 전투</displayname>
         </item>
     </staticpane>
     <staticpane x="0" y="5" length="9" height="1">
         <item id="arrow" x="4" y="0" onClick="toDataChest">
-            <displayname>§e§l뒤로 가기</displayname>
+            <displayname>§e뒤로 가기</displayname>
         </item>
     </staticpane>
-    <outlinepane x="0" y="0" length="9" height="1" priority="lowest" repeat="true">
-        <item id="black_stained_glass_pane" />
-    </outlinepane>
-    <outlinepane x="0" y="5" length="9" height="1" priority="lowest" repeat="true">
-        <item id="black_stained_glass_pane" />
+    <outlinepane x="0" y="0" length="9" height="6" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane">
+            <displayname> </displayname>
+        </item>
     </outlinepane>
 </chestgui>

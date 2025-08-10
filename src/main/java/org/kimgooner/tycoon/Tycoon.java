@@ -24,7 +24,7 @@ public final class Tycoon extends JavaPlugin {
     public void onEnable() {
         getLogger().info("플러그인 시작 테스트");
         //DB 연결
-        DatabaseManager.init();
+        DatabaseManager.init(this);
         GlobalController globalController = new GlobalController(this, DatabaseManager.getConnection());
 
         //기타

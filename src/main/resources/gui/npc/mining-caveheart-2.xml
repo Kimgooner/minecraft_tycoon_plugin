@@ -1,7 +1,7 @@
 <chestgui rows="6" title="§f동굴의 심장">
-    <outlinepane x="8" y="0" length="1" height="1">
-        <item id="arrow" x="8" y="0" onClick="toNextPage">
-            <displayname>§e위로 가기</displayname>
+    <outlinepane x="8" y="5" length="1" height="1">
+        <item id="arrow" onClick="toPrevPage">
+            <displayname>§e아래로 가기</displayname>
         </item>
     </outlinepane>
     <outlinepane x="0" y="5" length="1" height="1">

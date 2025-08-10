@@ -51,7 +51,7 @@ public class DataStorageDAO {
 
             // 만약 데이터가 비어있으면 (처음 접속 등)
             if (dataList.isEmpty()) {
-                initializeDataStorage(player, categoryId);
+                init(player, categoryId);
                 return getDataStorageByCategory(player, categoryId);  // 재귀 호출로 초기화 후 재조회
             }
 
@@ -62,7 +62,7 @@ public class DataStorageDAO {
         return dataList;
     }
 
-    public void initializeDataStorage(Player player, int categoryId) {
+    public void init(Player player, int categoryId) {
         try {
             conn.setAutoCommit(false);  // 트랜잭션 시작
             PreparedStatement insert = conn.prepareStatement(

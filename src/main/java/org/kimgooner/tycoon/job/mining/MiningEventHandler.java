@@ -24,7 +24,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -33,7 +32,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.kimgooner.tycoon.Tycoon;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
-import org.kimgooner.tycoon.db.dao.MiningDAO;
+import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
 import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
 
 import java.util.*;
@@ -214,6 +213,46 @@ public class MiningEventHandler implements Listener {
     }
 
     @EventHandler
+    public void onBlockDamageCalc(BlockDamageEvent event) {
+        Player player = event.getPlayer();
+
+        // 현재 아이템이 곡괭이인지 확인
+        ItemStack mainHand = player.getInventory().getItemInMainHand();
+        if (!isPickaxe(mainHand)) {
+            removeMiningSpeedModifier(player);
+            return;
+        }
+
+        AttributeInstance attr = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
+        if (attr == null) return;
+
+        // 기존 버프 제거 (중복 방지)
+        removeMiningSpeedModifier(player);
+
+        // 채광 속도 스탯 계산
+        MiningDAO.MiningStats stats = miningDAO.getMiningStats(player);
+        int speedStat = stats.getSpeed()
+                + getStat("speed", player)
+                + ENCHANT_EFFICIENCY.get(getStat("enchant_speed", player));
+
+        // 버프 적용
+        applyMiningSpeedStat(player, speedStat);
+
+        // 디버그 메시지
+        double baseValue = attr.getBaseValue();
+        double totalValue = attr.getValue();
+        player.sendMessage(Component.text("기본 채광 속도: " + baseValue).color(NamedTextColor.GRAY));
+        player.sendMessage(Component.text("최종 채광 속도: " + totalValue).color(NamedTextColor.GRAY));
+        player.sendMessage(
+                Component.text("⸕ 채광 속도 적용됨 - ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%,d", speedStat)).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false))
+        );
+    }
+
+
+    /*
+
+    @EventHandler
     public void onItemHeld(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
 
@@ -247,6 +286,9 @@ public class MiningEventHandler implements Listener {
             }
         }, 1L);
     }
+
+
+     */
 
     // 광물 드랍 시스템
     @EventHandler

@@ -16,7 +16,7 @@
     </outlinepane>
     <staticpane x="0" y="0" length="9" height="1">
         <item id="nether_star" x="4" y="0">
-            <displayname>§f§l메뉴</displayname>
+            <displayname>§f메뉴</displayname>
         </item>
     </staticpane>
     <staticpane x="0" y="3" length="9" height="1">
@@ -56,4 +56,9 @@
             </lore>
         </item>
     </staticpane>
+    <outlinepane x="0" y="0" length="9" height="6" priority="lowest" repeat="true">
+        <item id="black_stained_glass_pane">
+            <displayname> </displayname>
+        </item>
+    </outlinepane>
 </chestgui>
