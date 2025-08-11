@@ -1,5 +1,6 @@
-package org.kimgooner.tycoon.job.mining;
+package org.kimgooner.tycoon.job.mining.handler;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -7,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.Tycoon;
 import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
+import org.kimgooner.tycoon.discord.DiscordWebhookMessageEvent;
 import org.kimgooner.tycoon.global.item.job.mining.PickaxeList;
 
 import java.util.Set;
@@ -19,6 +21,18 @@ public class MiningCommandHandler implements CommandExecutor {
     public MiningCommandHandler(JavaPlugin plugin, MiningDAO miningDAO) {
         this.plugin = (Tycoon) plugin;
         this.miningDAO = miningDAO;
+    }
+
+    public void chatTest(Player player){
+        player.sendMessage(Component.text("§f[시스템]: §3채광 §f레벨이 상승했습니다! §84 §f-> §35"));
+        player.sendMessage(Component.text("§f[시스템]: §f레벨 보너스:"));
+        player.sendMessage(Component.text("§f[시스템]:  §f채광 행운: §84 §f-> §65 ☘"));
+        player.sendMessage(Component.text("§f[시스템]: §5동굴의 심장 §f등급이 상승했습니다! §84 §f-> §55"));
+        player.sendMessage(Component.text("§f[시스템]: §f등급 달성 보너스:"));
+        player.sendMessage(Component.text("§f[시스템]:  §8+§52 심장 해방의 열쇠"));
+        DiscordWebhookMessageEvent event = new DiscordWebhookMessageEvent(player);
+        plugin.getServer().getPluginManager().callEvent(event);
+
     }
 
     @Override
@@ -35,6 +49,9 @@ public class MiningCommandHandler implements CommandExecutor {
 
         String subcommand = args[0].toLowerCase();
         switch (subcommand) {
+            case "chat":
+                chatTest(player);
+                return true;
             case "edit":
                 UUID uuid = player.getUniqueId();
                 Set<UUID> editModePlayers = plugin.getEditModePlayers(); // getter 필요
@@ -82,6 +99,15 @@ public class MiningCommandHandler implements CommandExecutor {
                 int power = Integer.parseInt(args[1]);
                 miningDAO.setStat(player, "power", power);
                 sender.sendMessage("§a[Tycoon] §f파괴력을 " + power + "으로 설정합니다.");
+                return true;
+            case "wisdom":
+                if (args.length < 2) {
+                    sender.sendMessage("§c사용법: /mining wisdom <수치>");
+                    return true;
+                }
+                int wisdom = Integer.parseInt(args[1]);
+                miningDAO.setStat(player, "wisdom", wisdom);
+                sender.sendMessage("§a[Tycoon] §f경험치 획득량을 " + wisdom + "으로 설정합니다.");
                 return true;
             case "light":
                 if (args.length < 2) {

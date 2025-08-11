@@ -41,7 +41,7 @@ public class DatabaseManager {
                     id INTEGER PRIMARY KEY AUTO_INCREMENT,
                     member_uuid varchar(100) NOT NULL,
                     level INTEGER DEFAULT 1,
-                    exp INTEGER DEFAULT 0,
+                    exp DOUBLE DEFAULT 0,
                     wisdom INTEGER DEFAULT 0,
                     fortune INTEGER DEFAULT 0,
                     speed INTEGER DEFAULT 0,
@@ -60,7 +60,7 @@ public class DatabaseManager {
                     id INTEGER PRIMARY KEY AUTO_INCREMENT,
                     member_uuid varchar(100) NOT NULL,
                     level INTEGER DEFAULT 1,
-                    exp INTEGER DEFAULT 0,
+                    exp DOUBLE DEFAULT 0,
                     wisdom INTEGER DEFAULT 0,
                     fortune INTEGER DEFAULT 0,
                     richness INTEGER DEFAULT 0,
@@ -75,7 +75,7 @@ public class DatabaseManager {
                     id INTEGER PRIMARY KEY AUTO_INCREMENT,
                     member_uuid varchar(100) NOT NULL,
                     level INTEGER DEFAULT 1,
-                    exp INTEGER DEFAULT 0,
+                    exp DOUBLE DEFAULT 0,
                     wisdom INTEGER DEFAULT 0,
                     speed INTEGER DEFAULT 0,
                     multihook INTEGER DEFAULT 0,
@@ -91,7 +91,7 @@ public class DatabaseManager {
                     id INTEGER PRIMARY KEY AUTO_INCREMENT,
                     member_uuid varchar(100) NOT NULL,
                     level INTEGER DEFAULT 1,
-                    exp INTEGER DEFAULT 0,
+                    exp DOUBLE DEFAULT 0,
                     wisdom INTEGER DEFAULT 0,
                     health INTEGER DEFAULT 0,
                     strength INTEGER DEFAULT 0,
@@ -128,6 +128,22 @@ public class DatabaseManager {
                 );
             """);
 
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS cave_heart_info (
+                    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                    member_uuid varchar(100) NOT NULL,
+                    level INTEGER NOT NULL,
+                    heart_key INTEGER NOT NULL,
+                    low_powder INTEGER NOT NULL,
+                    high_powder INTEGER NOT NULL,
+                    used_heart_key INTEGER NOT NULL,
+                    used_low_powder INTEGER NOT NULL,
+                    used_high_powder INTEGER NOT NULL,
+                    FOREIGN KEY(member_uuid) REFERENCES members(uuid),
+                    UNIQUE(member_uuid)
+                );
+            """);
+
             stmt.close();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -141,6 +157,7 @@ public class DatabaseManager {
             Statement stmt = connection.createStatement();
 
             // 순서는 FK 제약 때문에 의존성 고려해 삭제 (자식 테이블부터)
+            stmt.executeUpdate("DROP TABLE IF EXISTS cave_heart_info;");
             stmt.executeUpdate("DROP TABLE IF EXISTS cave_heart;");
             stmt.executeUpdate("DROP TABLE IF EXISTS data_storage;");
             stmt.executeUpdate("DROP TABLE IF EXISTS combats;");

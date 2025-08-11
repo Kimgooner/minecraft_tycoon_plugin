@@ -1,4 +1,4 @@
-<chestgui rows="6" title="§f동굴의 심장">
+<chestgui rows="6" title="§f동굴의 심장 - 1">
     <outlinepane x="8" y="0" length="1" height="1">
         <item id="arrow" x="8" y="0" onClick="toNextPage">
             <displayname>§e위로 가기</displayname>

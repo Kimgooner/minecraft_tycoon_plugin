@@ -16,6 +16,7 @@ import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.item.global.ItemBuilder;
 
 import java.io.InputStream;
+import java.util.List;
 
 public class MenuGUI {
     private final JavaPlugin plugin;
@@ -45,6 +46,15 @@ public class MenuGUI {
         menuGUI.setOnGlobalClick(event -> event.setCancelled(true));
     }
 
+    private final List<Double> EXP_LISTS = List.of(
+            50.0, 125.0, 200.0, 300.0, 500.0, 750.0, 1000.0, 1500.0, 2000.0,
+            3500.0, 5000.0, 7500.0, 10000.0, 15000.0, 20000.0, 30000.0, 50000.0, 75000.0, 100000.0,
+            200000.0, 300000.0, 400000.0, 500000.0, 600000.0, 700000.0, 800000.0, 900000.0, 1000000.0, 1100000.0, 1200000.0,
+            1300000.0, 1400000.0, 1500000.0, 1600000.0, 1700000.0, 1800000.0, 1900000.0, 2000000.0, 2100000.0, 2200000.0,
+            2300000.0, 2400000.0, 2500000.0, 2600000.0, 2750000.0, 2900000.0, 3100000.0, 3400000.0, 3700000.0, 4000000.0,
+            4300000.0, 4600000.0, 4900000.0, 5200000.0, 5500000.0, 5800000.0, 6100000.0, 6400000.0, 6700000.0, 7000000.0
+    );
+
     public void open(Player player) {
         ChestGui playerMenu = menuGUI.copy();
         MiningDAO.MiningStats miningStats = miningDAO.getMiningStats(player);
@@ -57,10 +67,9 @@ public class MenuGUI {
                 .displayName(Component.text("§f채광 스텟"))
                 .addLore(Component.text("§7숙련도:"))
                 .addLore(Component.text(String.format(" §f레벨: %,d", miningStats.getLevel())))
-                .addLore(Component.text(String.format(" §f경험치: %,d", miningStats.getExp())))
-                .addLore(Component.text(" " + makePercentBar(miningStats.getExp(), 100)))
+                .addLore(Component.text(String.format(" §f경험치: %,.1f", miningStats.getExp())))
+                .addLore(Component.text(" " + makePercentBar(miningStats.getExp(), EXP_LISTS.get(miningStats.getLevel()))))
                 .addLore(Component.text(" §7레벨 보너스:"))
-                .addLore(Component.text(String.format("  §f채광 속도: §6+%,d ⸕", miningStats.getLevel() * 5)))
                 .addLore(Component.text(String.format("  §f채광 속도: §6+%,d ☘", miningStats.getLevel() * 4)))
                 .addLore(Component.text("§7스텟:"))
                 .addLore(Component.text(String.format(" §f채광 속도: §6%,d ⸕",  miningStats.getSpeed())))
@@ -80,7 +89,7 @@ public class MenuGUI {
                 .addLore(Component.text("§7숙련도:"))
                 .addLore(Component.text(" §f레벨:"))
                 .addLore(Component.text(" §f경험치:"))
-                .addLore(Component.text(" " + makePercentBar(43, 100)))
+                .addLore(Component.text(" " + makePercentBar(43.0, 100.0)))
                 .addLore(Component.text(" §7레벨 보너스:"))
                 .addLore(Component.text("  §f채광 속도: §6+5 ⸕"))
                 .addLore(Component.text("  §f채광 행운: §6+4 ☘"))
@@ -105,7 +114,7 @@ public class MenuGUI {
                 .addLore(Component.text("§7숙련도:"))
                 .addLore(Component.text(" §f레벨:"))
                 .addLore(Component.text(" §f경험치:"))
-                .addLore(Component.text(" " + makePercentBar(43, 100)))
+                .addLore(Component.text(" " + makePercentBar(43.0, 100.0)))
                 .addLore(Component.text(" §7레벨 보너스:"))
                 .addLore(Component.text("  §f채광 속도: §6+5 ⸕"))
                 .addLore(Component.text("  §f채광 행운: §6+4 ☘"))
@@ -127,7 +136,7 @@ public class MenuGUI {
                 .addLore(Component.text("§7숙련도:"))
                 .addLore(Component.text(" §f레벨:"))
                 .addLore(Component.text(" §f경험치:"))
-                .addLore(Component.text(" " + makePercentBar(43, 100)))
+                .addLore(Component.text(" " + makePercentBar(43.0, 100.0)))
                 .addLore(Component.text(" §7레벨 보너스:"))
                 .addLore(Component.text("  §f채광 속도: §6+5 ⸕"))
                 .addLore(Component.text("  §f채광 행운: §6+4 ☘"))
@@ -152,7 +161,7 @@ public class MenuGUI {
         playerMenu.getInventory().setItem(25, statCombat);
     }
 
-    public String makePercentBar(Integer cur, Integer max) {
+    public String makePercentBar(Double cur, Double max) {
         if (max == 0) return "§f□□□□□□□□□□"; // 0으로 나누는 상황 방지
 
         double percent = (double) cur / max;

@@ -39,13 +39,27 @@ public class HeartDAO {
         }
     }
 
+    public void addLevel(Player player, Integer index) {
+        try {
+            conn.setAutoCommit(false); // 트랜잭션 시작
+            PreparedStatement ps = conn.prepareStatement("UPDATE cave_heart SET value = value + 1 WHERE member_uuid = ? AND slot_index = ?");
+            ps.setString(1, player.getUniqueId().toString());
+            ps.setInt(2, index);
+            ps.executeUpdate();
+            conn.commit(); // 커밋
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void init(Player player) {
         try {
             conn.setAutoCommit(false); // 트랜잭션 시작
             PreparedStatement ps = conn.prepareStatement(
                     "INSERT IGNORE INTO cave_heart (member_uuid, slot_index, value) VALUES (?, ?, 0)"
             );
-            for (int i = 1; i <= 36; i++) {
+            for (int i = 1; i <= 33; i++) {
                 ps.setString(1, player.getUniqueId().toString());
                 ps.setInt(2, i);
                 ps.addBatch();
@@ -67,7 +81,7 @@ public class HeartDAO {
             ps.setString(1, player.getUniqueId().toString());
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return rs.getInt(1) >= 36;  // 모든 슬롯이 존재하면 true
+                return rs.getInt(1) >= 33;  // 모든 슬롯이 존재하면 true
             }
         } catch (SQLException e) {
             e.printStackTrace();

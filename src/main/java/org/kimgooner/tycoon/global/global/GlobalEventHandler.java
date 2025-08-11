@@ -29,15 +29,7 @@ public class GlobalEventHandler implements Listener {
         }
     }
 
-    @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            MenuItemUtil.enforceMenuItemSlot(event.getPlayer());
-        }, 1L);
-
-        // 멤버
-        Player player = event.getPlayer();
-
+    public void initTable(Player player) {
         plugin.getLogger().info(player.getName() + "접속, DB 확인.");
         plugin.getLogger().info("-----------------------------");
         if(!globalDAOController.getMemberDAO().hasData(player)) {
@@ -53,6 +45,10 @@ public class GlobalEventHandler implements Listener {
         if(!globalDAOController.getHeartDAO().hasData(player)) {
             globalDAOController.getHeartDAO().init(player);
             plugin.getLogger().info(player.getName() + "의 동굴의 심장 DB 생성");
+        }
+        if(!globalDAOController.getHeartInfoDAO().hasData(player)) {
+            globalDAOController.getHeartInfoDAO().init(player);
+            plugin.getLogger().info(player.getName() + "의 동굴의 심장 정보 DB 생성");
         }
 
         // 농사
@@ -82,6 +78,17 @@ public class GlobalEventHandler implements Listener {
         }
         plugin.getLogger().info("-----------------------------");
         plugin.getLogger().info(player.getName() + "의 DB 확인 완료.");
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            MenuItemUtil.enforceMenuItemSlot(event.getPlayer());
+        }, 1L);
+
+        // 멤버
+        Player player = event.getPlayer();
+        initTable(player);
     }
 
     @EventHandler

@@ -1,4 +1,4 @@
-package org.kimgooner.tycoon.global;
+package org.kimgooner.tycoon;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.GlobalDAOController;
@@ -7,8 +7,7 @@ import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.gui.menu.MenuEventHandler;
 import org.kimgooner.tycoon.global.npc.GlobalNPCController;
 import org.kimgooner.tycoon.global.warp.GlobalWarpController;
-import org.kimgooner.tycoon.job.mining.MiningCommandHandler;
-import org.kimgooner.tycoon.job.mining.MiningEventHandler;
+import org.kimgooner.tycoon.job.mining.MiningController;
 
 import java.sql.Connection;
 
@@ -18,8 +17,10 @@ public class GlobalController {
     private final GlobalWarpController globalWarpController;
     private final GlobalNPCController globalNPCController;
 
+    private final MiningController miningController;
+
     public GlobalController(JavaPlugin plugin, Connection connection) {
-        this.globalDaoController = new GlobalDAOController(connection);
+        this.globalDaoController = new GlobalDAOController(connection, plugin);
         this.globalGuiController = new GlobalGUIController(
                 plugin,
                 globalDaoController.getMemberDAO(),
@@ -27,18 +28,20 @@ public class GlobalController {
                 globalDaoController.getFarmingDAO(),
                 globalDaoController.getFishingDAO(),
                 globalDaoController.getCombatDAO(),
-                globalDaoController.getDataStorageDAO()
+                globalDaoController.getDataStorageDAO(),
+                globalDaoController.getHeartDAO(),
+                globalDaoController.getHeartInfoDAO()
         );
         this.globalWarpController = new GlobalWarpController(plugin, globalGuiController);
         this.globalNPCController = new GlobalNPCController(plugin, globalGuiController);
+        this.miningController = new MiningController(plugin, globalDaoController, globalGuiController);
 
         //이벤트 핸들러
         plugin.getServer().getPluginManager().registerEvents(new GlobalEventHandler(globalDaoController, plugin), plugin);
-        plugin.getServer().getPluginManager().registerEvents(new MiningEventHandler(globalDaoController.getMiningDAO(), globalDaoController.getDataStorageDAO(), plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new MenuEventHandler(globalGuiController), plugin);
 
         //커맨드 핸들러
-        plugin.getCommand("mining").setExecutor(new MiningCommandHandler(plugin, globalDaoController.getMiningDAO()));
+
 
     }
     public GlobalDAOController getDaoController() {

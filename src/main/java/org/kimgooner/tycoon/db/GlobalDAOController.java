@@ -1,21 +1,26 @@
 package org.kimgooner.tycoon.db;
 
-import org.kimgooner.tycoon.db.dao.*;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.db.dao.DataStorageDAO;
+import org.kimgooner.tycoon.db.dao.MemberDAO;
 import org.kimgooner.tycoon.db.dao.combat.CombatDAO;
 import org.kimgooner.tycoon.db.dao.farming.FarmingDAO;
 import org.kimgooner.tycoon.db.dao.fishing.FishingDAO;
 import org.kimgooner.tycoon.db.dao.mining.HeartDAO;
+import org.kimgooner.tycoon.db.dao.mining.HeartInfoDAO;
 import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
 
 import java.sql.Connection;
 
 public class GlobalDAOController {
     private final Connection conn;
+    private final JavaPlugin plugin;
 
     private final MemberDAO memberDAO;
 
     private final MiningDAO miningDAO;
     private final HeartDAO heartDAO;
+    private final HeartInfoDAO heartInfoDAO;
 
 
     private final FarmingDAO farmingDAO;
@@ -25,13 +30,15 @@ public class GlobalDAOController {
     private final DataStorageDAO dataStorageDAO;
 
 
-    public GlobalDAOController(Connection conn) {
+    public GlobalDAOController(Connection conn, JavaPlugin plugin) {
         this.conn = conn;
+        this.plugin = plugin;
 
         this.memberDAO = new MemberDAO(conn);
 
-        this.miningDAO = new MiningDAO(conn);
+        this.miningDAO = new MiningDAO(conn, plugin,this);
         this.heartDAO = new HeartDAO(conn);
+        this.heartInfoDAO = new HeartInfoDAO(conn);
 
         this.farmingDAO = new FarmingDAO(conn);
         this.fishingDAO = new FishingDAO(conn);
@@ -48,6 +55,7 @@ public class GlobalDAOController {
         return miningDAO;
     }
     public HeartDAO getHeartDAO() { return heartDAO; }
+    public HeartInfoDAO getHeartInfoDAO() { return heartInfoDAO; }
 
     public FarmingDAO getFarmingDAO() {
         return farmingDAO;
@@ -59,7 +67,5 @@ public class GlobalDAOController {
         return combatDAO;
     }
 
-    public DataStorageDAO getDataStorageDAO() {
-        return dataStorageDAO;
-    }
+    public DataStorageDAO getDataStorageDAO() {return dataStorageDAO;}
 }

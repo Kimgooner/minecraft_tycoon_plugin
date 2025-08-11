@@ -1,9 +1,10 @@
 package org.kimgooner.tycoon;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.DatabaseManager;
+import org.kimgooner.tycoon.discord.DiscordWebhookListener;
 import org.kimgooner.tycoon.discord.DiscordWebhookSender;
-import org.kimgooner.tycoon.global.GlobalController;
 import org.kimgooner.tycoon.global.gui.menu.MenuItemUtil;
 import org.kimgooner.tycoon.global.item.job.mining.PickaxeList;
 
@@ -33,6 +34,12 @@ public final class Tycoon extends JavaPlugin {
 
         //DiscordWebhook
         getServer().getPluginManager().registerEvents(new DiscordWebhookSender(this), this);
+        getServer().getPluginManager().registerEvents(new DiscordWebhookListener(new DiscordWebhookSender(this)), this);
+
+        for (Player player : getServer().getOnlinePlayers()) {
+            getLogger().info("현재 접속 중인 플레이어: " + player.getName());
+            // 필요하면 여기서 플레이어별 초기화 작업 수행 가능
+        }
     }
 
     @Override

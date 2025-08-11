@@ -7,11 +7,15 @@ import org.kimgooner.tycoon.db.dao.*;
 import org.kimgooner.tycoon.db.dao.combat.CombatDAO;
 import org.kimgooner.tycoon.db.dao.farming.FarmingDAO;
 import org.kimgooner.tycoon.db.dao.fishing.FishingDAO;
+import org.kimgooner.tycoon.db.dao.mining.HeartDAO;
+import org.kimgooner.tycoon.db.dao.mining.HeartInfoDAO;
 import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
 import org.kimgooner.tycoon.global.gui.datachest.gui.*;
-import org.kimgooner.tycoon.global.gui.job.mining.CaveHeartGUI;
-import org.kimgooner.tycoon.global.gui.job.mining.CaveHeartUpGUI;
-import org.kimgooner.tycoon.global.gui.job.mining.MineTeleportGUI;
+import org.kimgooner.tycoon.global.gui.job.mining.*;
+import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartEventHandler;
+import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartGUI;
+import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartUpEventHandler;
+import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartUpGUI;
 import org.kimgooner.tycoon.global.gui.menu.MenuGUI;
 
 public class GlobalGUIController {
@@ -33,7 +37,9 @@ public class GlobalGUIController {
             FarmingDAO farmingDAO,
             FishingDAO fishingDAO,
             CombatDAO combatDAO,
-            DataStorageDAO dataStorageDAO
+            DataStorageDAO dataStorageDAO,
+            HeartDAO heartDAO,
+            HeartInfoDAO heartInfoDAO
     )
     {
         plugin.getServer().getPluginManager().registerEvents(new GlobalGUIHandler(), plugin);
@@ -46,8 +52,12 @@ public class GlobalGUIController {
         this.fishingDataGUI = new FishingDataGUI(plugin, dataStorageDAO, this);
 
         this.mineTeleportGUI = new MineTeleportGUI(plugin, this);
-        this.caveHeartGUI = new CaveHeartGUI(plugin, this);
+
+        this.caveHeartGUI = new CaveHeartGUI(plugin, heartDAO,heartInfoDAO, this);
         this.caveHeartUpGUI = new CaveHeartUpGUI(plugin, this);
+        plugin.getServer().getPluginManager().registerEvents(new CaveHeartEventHandler(plugin, heartDAO), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new CaveHeartUpEventHandler(), plugin);
+
     }
 
     public void closeInventory(InventoryClickEvent event) {

@@ -1,4 +1,4 @@
-package org.kimgooner.tycoon.job.mining;
+package org.kimgooner.tycoon.job.mining.handler;
 
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
@@ -32,6 +32,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.kimgooner.tycoon.Tycoon;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
+import org.kimgooner.tycoon.db.dao.mining.HeartDAO;
+import org.kimgooner.tycoon.db.dao.mining.HeartInfoDAO;
 import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
 import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
 
@@ -41,12 +43,16 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class MiningEventHandler implements Listener {
     private final MiningDAO miningDAO;
+    private final HeartDAO heartDAO;
+    private final HeartInfoDAO heartInfoDAO;
     private final DataStorageDAO dataStorageDAO;
     private final Tycoon plugin;
     private final RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
 
-    public MiningEventHandler(MiningDAO miningDAO, DataStorageDAO dataStorageDAO, JavaPlugin plugin) {
+    public MiningEventHandler(MiningDAO miningDAO, HeartDAO heartDAO, HeartInfoDAO heartInfoDAO, DataStorageDAO dataStorageDAO, JavaPlugin plugin) {
         this.miningDAO = miningDAO;
+        this.heartDAO = heartDAO;
+        this.heartInfoDAO = heartInfoDAO;
         this.dataStorageDAO = dataStorageDAO;
         this.plugin = (Tycoon) plugin;
     }
@@ -54,51 +60,51 @@ public class MiningEventHandler implements Listener {
     /*
     특정 블럭 목록
      */
-    public record DropData(ItemStack drop, int grade, int target) {}
+    public record DropData(ItemStack drop, int grade, int target, int exp) {}
 
     private static final Map<Material, DropData> oreDropTable = Map.ofEntries(
-        Map.entry(Material.STONE, new DropData(new ItemStack(Material.STONE), 0, 0)),
-        Map.entry(Material.COBBLESTONE, new DropData(new ItemStack(Material.STONE), 0, 0)),
-        Map.entry(Material.ANDESITE, new DropData(new ItemStack(Material.STONE), 0, 0)),
-        Map.entry(Material.STONE_BRICKS, new DropData(new ItemStack(Material.STONE), 0, 0)),
-        Map.entry(Material.POLISHED_ANDESITE, new DropData(new ItemStack(Material.STONE), 0, 0)),
+        Map.entry(Material.STONE, new DropData(new ItemStack(Material.STONE), 0, 0, 1)),
+        Map.entry(Material.COBBLESTONE, new DropData(new ItemStack(Material.STONE), 0, 0, 1)),
+        Map.entry(Material.ANDESITE, new DropData(new ItemStack(Material.STONE), 0, 0, 1)),
+        Map.entry(Material.STONE_BRICKS, new DropData(new ItemStack(Material.STONE), 0, 0, 2)),
+        Map.entry(Material.POLISHED_ANDESITE, new DropData(new ItemStack(Material.STONE), 0, 0, 2)),
 
-        Map.entry(Material.DEEPSLATE, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
-        Map.entry(Material.COBBLED_DEEPSLATE, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
-        Map.entry(Material.BASALT, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
-        Map.entry(Material.SMOOTH_BASALT, new DropData(new ItemStack(Material.STONE, 2), 0, 0)),
+        Map.entry(Material.DEEPSLATE, new DropData(new ItemStack(Material.STONE, 2), 0, 0, 3)),
+        Map.entry(Material.COBBLED_DEEPSLATE, new DropData(new ItemStack(Material.STONE, 2), 0, 0, 2)),
+        Map.entry(Material.BASALT, new DropData(new ItemStack(Material.STONE, 2), 0, 0, 2)),
+        Map.entry(Material.SMOOTH_BASALT, new DropData(new ItemStack(Material.STONE, 2), 0, 0, 2)),
 
-        Map.entry(Material.DEEPSLATE_BRICKS, new DropData(new ItemStack(Material.STONE, 3), 0, 0)),
-        Map.entry(Material.DEEPSLATE_TILES, new DropData(new ItemStack(Material.STONE, 3), 0, 0)),
-        Map.entry(Material.CHISELED_DEEPSLATE, new DropData(new ItemStack(Material.STONE, 3), 0, 0)),
-        Map.entry(Material.CRACKED_DEEPSLATE_TILES, new DropData(new ItemStack(Material.STONE, 3), 0, 0)),
+        Map.entry(Material.DEEPSLATE_BRICKS, new DropData(new ItemStack(Material.STONE, 3), 0, 0, 4)),
+        Map.entry(Material.DEEPSLATE_TILES, new DropData(new ItemStack(Material.STONE, 3), 0, 0, 4)),
+        Map.entry(Material.CHISELED_DEEPSLATE, new DropData(new ItemStack(Material.STONE, 3), 0, 0, 4)),
+        Map.entry(Material.CRACKED_DEEPSLATE_TILES, new DropData(new ItemStack(Material.STONE, 3), 0, 0, 4)),
 
-        Map.entry(Material.COAL_ORE, new DropData(new ItemStack(Material.COAL), 1, 1)),
-        Map.entry(Material.COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT), 1, 2)),
-        Map.entry(Material.IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT), 2,3)),
-        Map.entry(Material.GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT), 2,4)),
-        Map.entry(Material.REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 4), 3,5)),
-        Map.entry(Material.LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 4), 3,6)),
-        Map.entry(Material.EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD), 4,7)),
-        Map.entry(Material.DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND), 4,8)),
+        Map.entry(Material.COAL_ORE, new DropData(new ItemStack(Material.COAL), 1, 1, 6)),
+        Map.entry(Material.COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT), 1, 2, 6)),
+        Map.entry(Material.IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT), 2,3, 6)),
+        Map.entry(Material.GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT), 2,4, 6)),
+        Map.entry(Material.REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 4), 3,5, 7)),
+        Map.entry(Material.LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 4), 3,6, 7)),
+        Map.entry(Material.EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD), 4,7, 9)),
+        Map.entry(Material.DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND), 4,8, 9)),
 
-        Map.entry(Material.DEEPSLATE_COAL_ORE, new DropData(new ItemStack(Material.COAL),1, 1)),
-        Map.entry(Material.DEEPSLATE_COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT),1,2)),
-        Map.entry(Material.DEEPSLATE_IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT),2,3)),
-        Map.entry(Material.DEEPSLATE_GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT),2,4)),
-        Map.entry(Material.DEEPSLATE_REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 4),3,5)),
-        Map.entry(Material.DEEPSLATE_LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 4),3,6)),
-        Map.entry(Material.DEEPSLATE_EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD), 4,7)),
-        Map.entry(Material.DEEPSLATE_DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND), 4,8)),
+        Map.entry(Material.DEEPSLATE_COAL_ORE, new DropData(new ItemStack(Material.COAL),1, 1, 6)),
+        Map.entry(Material.DEEPSLATE_COPPER_ORE, new DropData(new ItemStack(Material.COPPER_INGOT),1,2, 6)),
+        Map.entry(Material.DEEPSLATE_IRON_ORE, new DropData(new ItemStack(Material.IRON_INGOT),2,3, 6)),
+        Map.entry(Material.DEEPSLATE_GOLD_ORE, new DropData(new ItemStack(Material.GOLD_INGOT),2,4, 6)),
+        Map.entry(Material.DEEPSLATE_REDSTONE_ORE, new DropData(new ItemStack(Material.REDSTONE, 4),3,5, 7)),
+        Map.entry(Material.DEEPSLATE_LAPIS_ORE, new DropData(new ItemStack(Material.LAPIS_LAZULI, 4),3,6, 7)),
+        Map.entry(Material.DEEPSLATE_EMERALD_ORE, new DropData(new ItemStack(Material.EMERALD), 4,7, 9)),
+        Map.entry(Material.DEEPSLATE_DIAMOND_ORE, new DropData(new ItemStack(Material.DIAMOND), 4,8, 9)),
 
-        Map.entry(Material.COAL_BLOCK, new DropData(new ItemStack(Material.COAL, 2),1, 1)),
-        Map.entry(Material.WAXED_COPPER_BLOCK, new DropData(new ItemStack(Material.COPPER_INGOT, 2),1,2)),
-        Map.entry(Material.IRON_BLOCK, new DropData(new ItemStack(Material.IRON_INGOT, 2),2,3)),
-        Map.entry(Material.GOLD_BLOCK, new DropData(new ItemStack(Material.GOLD_INGOT, 2),2,4)),
-        Map.entry(Material.REDSTONE_BLOCK, new DropData(new ItemStack(Material.REDSTONE, 8),3,5)),
-        Map.entry(Material.LAPIS_BLOCK, new DropData(new ItemStack(Material.LAPIS_LAZULI, 8),3,6)),
-        Map.entry(Material.EMERALD_BLOCK, new DropData(new ItemStack(Material.EMERALD, 2),4,7)),
-        Map.entry(Material.DIAMOND_BLOCK, new DropData(new ItemStack(Material.DIAMOND, 2),4,8))
+        Map.entry(Material.COAL_BLOCK, new DropData(new ItemStack(Material.COAL, 2),1, 1, 12)),
+        Map.entry(Material.WAXED_COPPER_BLOCK, new DropData(new ItemStack(Material.COPPER_INGOT, 2),1, 2, 12)),
+        Map.entry(Material.IRON_BLOCK, new DropData(new ItemStack(Material.IRON_INGOT, 2),2,3, 13)),
+        Map.entry(Material.GOLD_BLOCK, new DropData(new ItemStack(Material.GOLD_INGOT, 2),2,4, 13)),
+        Map.entry(Material.REDSTONE_BLOCK, new DropData(new ItemStack(Material.REDSTONE, 8),3,5, 14)),
+        Map.entry(Material.LAPIS_BLOCK, new DropData(new ItemStack(Material.LAPIS_LAZULI, 8),3,6, 14)),
+        Map.entry(Material.EMERALD_BLOCK, new DropData(new ItemStack(Material.EMERALD, 2),4,7, 20)),
+        Map.entry(Material.DIAMOND_BLOCK, new DropData(new ItemStack(Material.DIAMOND, 2),4,8, 20))
     );
 
     /*
@@ -249,47 +255,6 @@ public class MiningEventHandler implements Listener {
         );
     }
 
-
-    /*
-
-    @EventHandler
-    public void onItemHeld(PlayerItemHeldEvent event) {
-        Player player = event.getPlayer();
-
-        // 1틱 뒤에 실행 (아이템 장착 후 적용되도록)
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            ItemStack mainHand = player.getInventory().getItemInMainHand();
-
-            AttributeInstance attr = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
-            if (attr == null) return;
-
-            // 기존 modifier 제거
-            removeMiningSpeedModifier(player);
-
-            if (isPickaxe(mainHand)) {
-                MiningDAO.MiningStats stats = miningDAO.getMiningStats(player);
-                int speedStat = stats.getSpeed() + getStat("speed", player) + ENCHANT_EFFICIENCY.get(getStat("enchant_speed", player)); // <- 이건 너가 구현한 메서드
-                applyMiningSpeedStat(player, speedStat);
-
-                //Attribute 값 확인.
-                double baseValue = attr.getBaseValue();
-                double totalValue = attr.getValue();
-                player.sendMessage(Component.text("기본 채광 속도: " + baseValue).color(NamedTextColor.GRAY));
-                player.sendMessage(Component.text("최종 채광 속도: " + totalValue).color(NamedTextColor.GRAY));
-
-                player.sendMessage(
-                        Component.text("⸕ 채광 속도 적용됨 - ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
-                                .append(Component.text(String.format("%,d",  speedStat)).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false))
-                );
-            } else {
-                player.sendMessage(Component.text("⸕ 채광 속도 적용 해제").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
-            }
-        }, 1L);
-    }
-
-
-     */
-
     // 광물 드랍 시스템
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
@@ -353,6 +318,10 @@ public class MiningEventHandler implements Listener {
 
         int grade = dropData.grade();
         int target = dropData.target();
+        double wisdom = (double) getStat("wisdom", player);
+        double exp_bonus = 1 + (wisdom / 100.0);
+        double exp = (double) dropData.exp();
+        miningDAO.addExp(player, exp * exp_bonus);
 
         ItemMeta meta = dropItem.getItemMeta();
         if (meta != null) {
@@ -364,6 +333,13 @@ public class MiningEventHandler implements Listener {
             display = display.append(Component.text(" By " + player.getName()).color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
             meta.displayName(display);
             dropItem.setItemMeta(meta);
+        }
+
+        if(grade <= 4){
+            heartInfoDAO.addLowPowder(player, grade);
+        }
+        else if(grade <= 8){
+            heartInfoDAO.addHighPowder(player, grade-4);
         }
 
         Location dropLoc = block.getLocation().add(0.5, 0.5, 0.5);
