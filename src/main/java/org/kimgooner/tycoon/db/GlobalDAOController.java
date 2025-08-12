@@ -3,17 +3,14 @@ package org.kimgooner.tycoon.db;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
 import org.kimgooner.tycoon.db.dao.MemberDAO;
-import org.kimgooner.tycoon.db.dao.combat.CombatDAO;
-import org.kimgooner.tycoon.db.dao.farming.FarmingDAO;
-import org.kimgooner.tycoon.db.dao.fishing.FishingDAO;
-import org.kimgooner.tycoon.db.dao.mining.HeartDAO;
-import org.kimgooner.tycoon.db.dao.mining.HeartInfoDAO;
-import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
-
-import java.sql.Connection;
+import org.kimgooner.tycoon.db.dao.job.combat.CombatDAO;
+import org.kimgooner.tycoon.db.dao.job.farming.FarmingDAO;
+import org.kimgooner.tycoon.db.dao.job.fishing.FishingDAO;
+import org.kimgooner.tycoon.db.dao.job.mining.HeartDAO;
+import org.kimgooner.tycoon.db.dao.job.mining.HeartInfoDAO;
+import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
 
 public class GlobalDAOController {
-    private final Connection conn;
     private final JavaPlugin plugin;
 
     private final MemberDAO memberDAO;
@@ -30,21 +27,20 @@ public class GlobalDAOController {
     private final DataStorageDAO dataStorageDAO;
 
 
-    public GlobalDAOController(Connection conn, JavaPlugin plugin) {
-        this.conn = conn;
+    public GlobalDAOController(DatabaseManager databaseManager, JavaPlugin plugin) {
         this.plugin = plugin;
 
-        this.memberDAO = new MemberDAO(conn);
+        this.memberDAO = new MemberDAO(databaseManager);
 
-        this.miningDAO = new MiningDAO(conn, plugin,this);
-        this.heartDAO = new HeartDAO(conn);
-        this.heartInfoDAO = new HeartInfoDAO(conn);
+        this.miningDAO = new MiningDAO(databaseManager, plugin,this);
+        this.heartDAO = new HeartDAO(databaseManager);
+        this.heartInfoDAO = new HeartInfoDAO(databaseManager, plugin);
 
-        this.farmingDAO = new FarmingDAO(conn);
-        this.fishingDAO = new FishingDAO(conn);
-        this.combatDAO = new CombatDAO(conn);
+        this.farmingDAO = new FarmingDAO(databaseManager);
+        this.fishingDAO = new FishingDAO(databaseManager);
+        this.combatDAO = new CombatDAO(databaseManager);
 
-        this.dataStorageDAO = new DataStorageDAO(conn);
+        this.dataStorageDAO = new DataStorageDAO(databaseManager);
     }
 
     public MemberDAO getMemberDAO() {

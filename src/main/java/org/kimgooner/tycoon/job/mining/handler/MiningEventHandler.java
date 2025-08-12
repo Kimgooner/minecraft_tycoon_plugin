@@ -32,9 +32,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.kimgooner.tycoon.Tycoon;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
-import org.kimgooner.tycoon.db.dao.mining.HeartDAO;
-import org.kimgooner.tycoon.db.dao.mining.HeartInfoDAO;
-import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
+import org.kimgooner.tycoon.db.dao.job.mining.HeartDAO;
+import org.kimgooner.tycoon.db.dao.job.mining.HeartInfoDAO;
+import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
 import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
 
 import java.util.*;
@@ -106,10 +106,6 @@ public class MiningEventHandler implements Listener {
         Map.entry(Material.EMERALD_BLOCK, new DropData(new ItemStack(Material.EMERALD, 2),4,7, 20)),
         Map.entry(Material.DIAMOND_BLOCK, new DropData(new ItemStack(Material.DIAMOND, 2),4,8, 20))
     );
-
-    /*
-    특정 블럭만 처리하도록
-     */
 
     private static final List<String> STAT_KEYS = List.of("power", "speed", "fortune", "pristine");
     private static final List<String> ENCHANT_KEYS = List.of("enchant_speed", "enchant_fortune", "enchant_pristine");
@@ -201,6 +197,43 @@ public class MiningEventHandler implements Listener {
         for (AttributeModifier mod : attr.getModifiers()) {
             attr.removeModifier(mod);
         }
+    }
+
+    private class overallMiningStat{
+        //일반 스탯
+        private int speed;                          // 채광 속도
+        private int fortune;                        // 채광 행운
+        private int spread;                         // 연쇄 파괴
+        private int pristine;                       // 순수
+        private int light;                          // 빛
+
+        private int wisdom;                         // 경험치 획득량
+
+        private int dust;                           // 가루 획득량
+        private int low_base;                       // 하위 가루 기본값
+        private int high_base;                      // 상위 가루 기본값
+
+        //확률 관련
+        private double find_ore;                    // 광물 발견 확률
+        private double find_block;                  // 풍부한 광물 발견 확률
+        private double find_chest;                  // 상자 드랍 확률
+        private double find_highChest;              // 상위 상자 드랍 확률
+
+        //패시브 스킬
+        private boolean is_consecutiveFortune;      // 연속적인 채광: 행운
+        private boolean is_consecutiveSpeed;        // 연속적인 채광: 속도
+        private boolean is_eventFortune;            // 이벤트 보너스: 행운
+        private boolean is_eventSpeed;              // 이벤트 보너스: 속도
+        private boolean is_eventChest;              // 이벤트 보너스: 상자
+        private boolean is_eventDust;               // 이벤트 보너스: 가루
+        private boolean is_umbralOre;               // 움브랄나이트 탐사
+        private boolean is_riftOre;                 // 균열 광물 탐사
+        private boolean is_oreTransmutation;        // 광석 변이
+        private boolean is_caveBlessing;            // 동굴의 축복
+    }
+
+    private void calcMiningOverallMiningStat(Player player) {
+
     }
 
     @EventHandler

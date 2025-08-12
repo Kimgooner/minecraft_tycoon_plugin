@@ -1,5 +1,5 @@
 package org.kimgooner.tycoon.discord;
 
 public enum LevelUpType {
-    MINING, FARMING, FISHING, COMBAT
+    MINING, FARMING, FISHING, COMBAT, HEART
 }

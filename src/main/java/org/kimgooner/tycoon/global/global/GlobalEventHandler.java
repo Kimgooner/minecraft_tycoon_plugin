@@ -27,6 +27,12 @@ public class GlobalEventHandler implements Listener {
         if (event.getEntityType() == EntityType.BAT) {
             event.setCancelled(true);
         }
+        if (event.getEntityType() == EntityType.WANDERING_TRADER) {
+            event.setCancelled(true);
+        }
+        if (event.getEntityType() == EntityType.LLAMA) {
+            event.setCancelled(true);
+        }
     }
 
     public void initTable(Player player) {

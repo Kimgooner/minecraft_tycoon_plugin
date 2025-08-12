@@ -4,12 +4,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.dao.*;
-import org.kimgooner.tycoon.db.dao.combat.CombatDAO;
-import org.kimgooner.tycoon.db.dao.farming.FarmingDAO;
-import org.kimgooner.tycoon.db.dao.fishing.FishingDAO;
-import org.kimgooner.tycoon.db.dao.mining.HeartDAO;
-import org.kimgooner.tycoon.db.dao.mining.HeartInfoDAO;
-import org.kimgooner.tycoon.db.dao.mining.MiningDAO;
+import org.kimgooner.tycoon.db.dao.job.combat.CombatDAO;
+import org.kimgooner.tycoon.db.dao.job.farming.FarmingDAO;
+import org.kimgooner.tycoon.db.dao.job.fishing.FishingDAO;
+import org.kimgooner.tycoon.db.dao.job.mining.HeartDAO;
+import org.kimgooner.tycoon.db.dao.job.mining.HeartInfoDAO;
+import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
+import org.kimgooner.tycoon.global.global.SoundUtil;
 import org.kimgooner.tycoon.global.gui.datachest.gui.*;
 import org.kimgooner.tycoon.global.gui.job.mining.*;
 import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartEventHandler;
@@ -19,6 +20,8 @@ import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartUpGUI;
 import org.kimgooner.tycoon.global.gui.menu.MenuGUI;
 
 public class GlobalGUIController {
+    private final SoundUtil soundUtil = new SoundUtil();
+
     private final MenuGUI menuGUI;
     private final DataChestGUI dataChestGUI;
     private final MiningDataGUI miningDataGUI;
@@ -55,7 +58,7 @@ public class GlobalGUIController {
 
         this.caveHeartGUI = new CaveHeartGUI(plugin, heartDAO,heartInfoDAO, this);
         this.caveHeartUpGUI = new CaveHeartUpGUI(plugin, this);
-        plugin.getServer().getPluginManager().registerEvents(new CaveHeartEventHandler(plugin, heartDAO), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new CaveHeartEventHandler(plugin, heartDAO, heartInfoDAO), plugin);
         plugin.getServer().getPluginManager().registerEvents(new CaveHeartUpEventHandler(), plugin);
 
     }
@@ -66,43 +69,52 @@ public class GlobalGUIController {
     }
 
     public void openMineTeleportGUI(Player player) {
+        soundUtil.playGUISound(player);
         mineTeleportGUI.open(player);
     }
 
     public void openMenu(Player player) {
+        soundUtil.playGUISound(player);
         menuGUI.open(player);
     }
 
     public void openDataChest(InventoryClickEvent event) {
         Player p = (Player) event.getWhoClicked();
+        soundUtil.playGUISound(p);
         dataChestGUI.open(p);
     }
 
     public void openMiningData(InventoryClickEvent event) {
         Player p = (Player) event.getWhoClicked();
+        soundUtil.playGUISound(p);
         miningDataGUI.open(p);
     }
 
     public void openFarmingData(InventoryClickEvent event) {
         Player p = (Player) event.getWhoClicked();
+        soundUtil.playGUISound(p);
         farmingDataGUI.open(p);
     }
 
     public void openFishingData(InventoryClickEvent event) {
         Player p = (Player) event.getWhoClicked();
+        soundUtil.playGUISound(p);
         fishingDataGUI.open(p);
     }
 
     public void openCombatData(InventoryClickEvent event) {
         Player p = (Player) event.getWhoClicked();
+        soundUtil.playGUISound(p);
         combatDataGUI.open(p);
     }
 
     public void openCaveHeart(Player player) {
+        soundUtil.playGUISound(player);
         caveHeartGUI.open(player);
     }
 
     public void openCaveHeartUp(Player player) {
+        soundUtil.playGUISound(player);
         caveHeartUpGUI.open(player);
     }
 }

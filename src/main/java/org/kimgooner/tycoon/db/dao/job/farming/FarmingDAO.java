@@ -1,6 +1,7 @@
-package org.kimgooner.tycoon.db.dao.farming;
+package org.kimgooner.tycoon.db.dao.job.farming;
 
 import org.bukkit.entity.Player;
+import org.kimgooner.tycoon.db.DatabaseManager;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,10 +10,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class FarmingDAO {
-    private final Connection conn;
+    private final DatabaseManager databaseManager;
 
-    public FarmingDAO(Connection conn) {
-        this.conn = conn;
+    public FarmingDAO(DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
     }
 
     public static class FarmingStats {
@@ -21,6 +22,7 @@ public class FarmingDAO {
         int wisdom;
         int fortune;
         int richness;
+
         public FarmingStats(int level, int exp, int wisdom, int fortune, int richness) {
             this.level = level;
             this.exp = exp;
@@ -28,29 +30,21 @@ public class FarmingDAO {
             this.fortune = fortune;
             this.richness = richness;
         }
-        public int getLevel() {
-            return level;
-        }
-        public int getExp() {
-            return exp;
-        }
-        public int getWisdom() {
-            return wisdom;
-        }
-        public int getFortune() {
-            return fortune;
-        }
-        public int getRichness() {
-            return richness;
-        }
+
+        public int getLevel() { return level; }
+        public int getExp() { return exp; }
+        public int getWisdom() { return wisdom; }
+        public int getFortune() { return fortune; }
+        public int getRichness() { return richness; }
     }
 
     public boolean hasData(Player player) {
-        String sql = "SELECT * FROM farmings WHERE member_uuid = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)){
+        String sql = "SELECT 1 FROM farmings WHERE member_uuid = ?";
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, player.getUniqueId().toString());
-            try (ResultSet rs = ps.executeQuery()){
-                return (rs.next());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -59,9 +53,10 @@ public class FarmingDAO {
     }
 
     public void init(Player player) {
-        if (hasData(player)) return; // 이미 있으면 무시
-        String sql = "INSERT INTO farmings (member_uuid, level, exp, wisdom, fortune, richness) VALUES (?, 1, 0, 0, 0, 0) ";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        if (hasData(player)) return;
+        String sql = "INSERT INTO farmings (member_uuid, level, exp, wisdom, fortune, richness) VALUES (?, 1, 0, 0, 0, 0)";
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, player.getUniqueId().toString());
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -71,7 +66,8 @@ public class FarmingDAO {
 
     public FarmingStats getFarmingStats(Player player) {
         String sql = "SELECT level, exp, wisdom, fortune, richness FROM farmings WHERE member_uuid = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, player.getUniqueId().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -84,7 +80,7 @@ public class FarmingDAO {
                     );
                 }
             }
-        }  catch (SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return new FarmingStats(1, 0, 0, 0, 0);
@@ -97,14 +93,11 @@ public class FarmingDAO {
         }
 
         String sql = "UPDATE farmings SET " + tag + " = ? WHERE member_uuid = ?";
-        try {
-            conn.setAutoCommit(false);
-            PreparedStatement ps = conn.prepareStatement(sql);
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, amount);
             ps.setString(2, player.getUniqueId().toString());
             ps.executeUpdate();
-            conn.commit();
-            conn.setAutoCommit(true);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -117,7 +110,8 @@ public class FarmingDAO {
         }
 
         String sql = "SELECT " + tag + " FROM farmings WHERE member_uuid = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, player.getUniqueId().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt(tag);

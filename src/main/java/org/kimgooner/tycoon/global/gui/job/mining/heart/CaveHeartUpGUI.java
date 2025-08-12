@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.global.global.SoundUtil;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.item.global.ItemBuilder;
 import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
@@ -19,6 +20,7 @@ import java.util.List;
 public class CaveHeartUpGUI {
     private final JavaPlugin plugin;
     private final GlobalGUIController globalGuiController;
+    private final SoundUtil soundUtil = new SoundUtil();
 
     private ChestGui caveHeartUpGUI;
 
@@ -143,10 +145,15 @@ public class CaveHeartUpGUI {
     }
 
     public void toPrevPage(InventoryClickEvent event) {
-        globalGuiController.openCaveHeart((Player) event.getWhoClicked());
+        Player player = (Player) event.getWhoClicked();
+        soundUtil.playGUISound(player);
+        globalGuiController.openCaveHeart(player);
+
     }
 
     public void toClose(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
         globalGuiController.closeInventory(event);
+        soundUtil.playGUISound(player);
     }
 }

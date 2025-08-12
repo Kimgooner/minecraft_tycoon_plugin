@@ -1,6 +1,7 @@
 package org.kimgooner.tycoon;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.db.DatabaseManager;
 import org.kimgooner.tycoon.db.GlobalDAOController;
 import org.kimgooner.tycoon.global.global.GlobalEventHandler;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
@@ -8,8 +9,6 @@ import org.kimgooner.tycoon.global.gui.menu.MenuEventHandler;
 import org.kimgooner.tycoon.global.npc.GlobalNPCController;
 import org.kimgooner.tycoon.global.warp.GlobalWarpController;
 import org.kimgooner.tycoon.job.mining.MiningController;
-
-import java.sql.Connection;
 
 public class GlobalController {
     private final GlobalDAOController globalDaoController;
@@ -19,8 +18,8 @@ public class GlobalController {
 
     private final MiningController miningController;
 
-    public GlobalController(JavaPlugin plugin, Connection connection) {
-        this.globalDaoController = new GlobalDAOController(connection, plugin);
+    public GlobalController(JavaPlugin plugin, DatabaseManager databaseManager) {
+        this.globalDaoController = new GlobalDAOController(databaseManager, plugin);
         this.globalGuiController = new GlobalGUIController(
                 plugin,
                 globalDaoController.getMemberDAO(),

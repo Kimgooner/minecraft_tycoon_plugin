@@ -1,6 +1,7 @@
-package org.kimgooner.tycoon.db.dao.combat;
+package org.kimgooner.tycoon.db.dao.job.combat;
 
 import org.bukkit.entity.Player;
+import org.kimgooner.tycoon.db.DatabaseManager;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,10 +10,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class CombatDAO {
-    private final Connection conn;
+    private final DatabaseManager databaseManager;
 
-    public CombatDAO(Connection conn) {
-        this.conn = conn;
+    public CombatDAO(DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
     }
 
     public static class CombatStats {
@@ -48,7 +49,8 @@ public class CombatDAO {
 
     public boolean hasData(Player player) {
         String sql = "SELECT 1 FROM combats WHERE member_uuid = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, player.getUniqueId().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next();
@@ -63,7 +65,8 @@ public class CombatDAO {
         if (hasData(player)) return; // 이미 있으면 무시
         String sql = "INSERT INTO combats (member_uuid, level, exp, wisdom, health, strength, critchance, critdamage, ability) " +
                 "VALUES (?, 1, 0, 0, 0, 0, 0, 0, 0)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, player.getUniqueId().toString());
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -73,7 +76,8 @@ public class CombatDAO {
 
     public CombatStats getCombatStats(Player player) {
         String sql = "SELECT level, exp, wisdom, health, strength, critchance, critdamage, ability FROM combats WHERE member_uuid = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, player.getUniqueId().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -92,7 +96,6 @@ public class CombatDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        // 기본값 반환 (DB 삽입은 init()에서만 함)
         return new CombatStats(1, 0, 0, 0, 0, 0, 0, 0);
     }
 
@@ -103,14 +106,11 @@ public class CombatDAO {
         }
 
         String sql = "UPDATE combats SET " + tag + " = ? WHERE member_uuid = ?";
-        try {
-            conn.setAutoCommit(false);
-            PreparedStatement ps = conn.prepareStatement(sql);
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, amount);
             ps.setString(2, player.getUniqueId().toString());
             ps.executeUpdate();
-            conn.commit();
-            conn.setAutoCommit(true);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -123,7 +123,8 @@ public class CombatDAO {
         }
 
         String sql = "SELECT " + tag + " FROM combats WHERE member_uuid = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, player.getUniqueId().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt(tag);

@@ -7,6 +7,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
+import org.kimgooner.tycoon.global.global.SoundUtil;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.gui.datachest.util.DataChestUtil;
 
@@ -16,6 +17,7 @@ import java.util.List;
 public class MiningDataGUI {
     private final DataStorageDAO dataStorageDAO;
     private final GlobalGUIController globalGuiController;
+    private final SoundUtil soundUtil =  new SoundUtil();
 
     private final ChestGui miningDataGUI;
 

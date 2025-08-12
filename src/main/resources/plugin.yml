@@ -6,3 +6,6 @@ commands:
   mining:
     description: 채광 명령어
     usage: /mining <subcommand>
+  heart:
+    description: 동굴의 심장 명령어
+    usage: /heart <subcommand>

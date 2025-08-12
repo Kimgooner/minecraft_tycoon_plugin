@@ -1,6 +1,7 @@
 package org.kimgooner.tycoon.db.dao;
 
 import org.bukkit.entity.Player;
+import org.kimgooner.tycoon.db.DatabaseManager;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,10 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataStorageDAO {
-    private final Connection conn;
+    private final DatabaseManager databaseManager;
 
-    public DataStorageDAO(Connection conn) {
-        this.conn = conn;
+    public DataStorageDAO(DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
     }
 
     public static class DataStorage {
@@ -34,27 +35,21 @@ public class DataStorageDAO {
     public List<DataStorage> getDataStorageByCategory(Player player, int categoryId) {
         List<DataStorage> dataList = new ArrayList<>();
 
-        try {
-            PreparedStatement ps = conn.prepareStatement(
-                    "SELECT * FROM data_storage WHERE member_uuid = ? AND category_id = ? ORDER BY slot_index ASC"
-            );
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT * FROM data_storage WHERE member_uuid = ? AND category_id = ? ORDER BY slot_index ASC"
+             );
+        ) {
             ps.setString(1, player.getUniqueId().toString());
             ps.setInt(2, categoryId);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                dataList.add(new DataStorage(
-                        rs.getInt("slot_index"),
-                        rs.getInt("amount")
-                ));
+            try(ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    dataList.add(new DataStorage(
+                            rs.getInt("slot_index"),
+                            rs.getInt("amount")
+                    ));
+                }
             }
-
-            // 만약 데이터가 비어있으면 (처음 접속 등)
-            if (dataList.isEmpty()) {
-                init(player, categoryId);
-                return getDataStorageByCategory(player, categoryId);  // 재귀 호출로 초기화 후 재조회
-            }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -63,12 +58,12 @@ public class DataStorageDAO {
     }
 
     public void init(Player player, int categoryId) {
-        try {
-            conn.setAutoCommit(false);  // 트랜잭션 시작
-            PreparedStatement insert = conn.prepareStatement(
-                    "INSERT INTO data_storage (member_uuid, category_id, slot_index, amount) VALUES (?, ?, ?, ?)"
-            );
-
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement insert = conn.prepareStatement(
+                     "INSERT INTO data_storage (member_uuid, category_id, slot_index, amount) VALUES (?, ?, ?, ?)"
+             )
+        )
+        {
             for (int slot = 0; slot < 21; slot++) {
                 insert.setString(1, player.getUniqueId().toString());
                 insert.setInt(2, categoryId);
@@ -77,24 +72,18 @@ public class DataStorageDAO {
                 insert.addBatch();
             }
             insert.executeBatch();
-            conn.commit();
-            conn.setAutoCommit(true);
         } catch (SQLException e) {
             e.printStackTrace();
-            try {
-                conn.rollback();
-                conn.setAutoCommit(true);
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
         }
     }
 
     public void addAmount(Player player, int categoryId, int slotIndex, int amountToAdd) {
-        try {
-            PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE data_storage SET amount = amount + ? WHERE member_uuid = ? AND category_id = ? AND slot_index = ?"
-            );
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "UPDATE data_storage SET amount = amount + ? WHERE member_uuid = ? AND category_id = ? AND slot_index = ?"
+             )
+        )
+        {
             ps.setInt(1, amountToAdd);
             ps.setString(2, player.getUniqueId().toString());
             ps.setInt(3, categoryId);
@@ -106,33 +95,32 @@ public class DataStorageDAO {
     }
 
     public boolean removeAmount(Player player, int categoryId, int slotIndex, int amountToRemove) {
-        try {
-            // 현재 amount 조회
-            PreparedStatement select = conn.prepareStatement(
-                    "SELECT amount FROM data_storage WHERE member_uuid = ? AND category_id = ? AND slot_index = ?"
-            );
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement select = conn.prepareStatement(
+                     "SELECT amount FROM data_storage WHERE member_uuid = ? AND category_id = ? AND slot_index = ?"
+             );
+        ){
             select.setString(1, player.getUniqueId().toString());
             select.setInt(2, categoryId);
             select.setInt(3, slotIndex);
-            ResultSet rs = select.executeQuery();
+            try(ResultSet rs = select.executeQuery();) {
+                if (rs.next()) {
+                    int current = rs.getInt("amount");
+                    if (current <= 0) return false; // 감소할 수 없음
 
-            if (rs.next()) {
-                int current = rs.getInt("amount");
-                if (current <= 0) return false; // 감소할 수 없음
+                    int newAmount = Math.max(0, current - amountToRemove);
 
-                int newAmount = Math.max(0, current - amountToRemove);
-
-                PreparedStatement update = conn.prepareStatement(
-                        "UPDATE data_storage SET amount = ? WHERE member_uuid = ? AND category_id = ? AND slot_index = ?"
-                );
-                update.setInt(1, newAmount);
-                update.setString(2, player.getUniqueId().toString());
-                update.setInt(3, categoryId);
-                update.setInt(4, slotIndex);
-                update.executeUpdate();
-                return true;
+                    PreparedStatement update = conn.prepareStatement(
+                            "UPDATE data_storage SET amount = ? WHERE member_uuid = ? AND category_id = ? AND slot_index = ?"
+                    );
+                    update.setInt(1, newAmount);
+                    update.setString(2, player.getUniqueId().toString());
+                    update.setInt(3, categoryId);
+                    update.setInt(4, slotIndex);
+                    update.executeUpdate();
+                    return true;
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -141,20 +129,22 @@ public class DataStorageDAO {
     }
 
     public boolean hasData(Player player, int categoryId) {
-        try {
+        try (Connection conn = databaseManager.getConnection();
             PreparedStatement ps = conn.prepareStatement(
                     "SELECT COUNT(*) FROM data_storage WHERE member_uuid = ? AND category_id = ?"
-            );
+            )
+        )
+        {
             ps.setString(1, player.getUniqueId().toString());
             ps.setInt(2, categoryId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) >= 21;  // 모든 슬롯이 존재하면 true
+            try(ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) >= 21;  // 모든 슬롯이 존재하면 true
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
-
 }

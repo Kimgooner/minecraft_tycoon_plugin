@@ -137,7 +137,7 @@ public class DiscordWebhookSender implements Listener {
         });
     }
 
-    public void sendPlayerEmbed(Player player, String title, String description, String thumbnailUrl) {
+    public void sendPlayerEmbed(Player player, String title, String description, String thumbnailUrl, Integer color) {
         if (WEBHOOK_URL == null || WEBHOOK_URL.isEmpty()) {
             plugin.getLogger().severe("웹훅 URL이 설정되어 있지 않습니다! .env 파일을 확인하세요.");
             return;
@@ -165,7 +165,7 @@ public class DiscordWebhookSender implements Listener {
                 embed.add("author", author);
                 embed.addProperty("title", title);
                 embed.addProperty("description", description);
-                embed.addProperty("color", 3447003);  // 파란색 예시
+                embed.addProperty("color", color);  // 파란색 예시
                 embed.addProperty("timestamp", java.time.OffsetDateTime.now().toString());
 
                 // 썸네일 URL이 있으면 thumbnail 객체 추가

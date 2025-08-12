@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
+import org.kimgooner.tycoon.global.global.SoundUtil;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 
 import java.io.InputStream;
@@ -12,6 +13,7 @@ import java.io.InputStream;
 public class FarmingDataGUI {
     private final DataStorageDAO dataStorageDAO;
     private final GlobalGUIController globalGuiController;
+    private final SoundUtil soundUtil = new SoundUtil();
 
     private final ChestGui farmingChestGui;
 
