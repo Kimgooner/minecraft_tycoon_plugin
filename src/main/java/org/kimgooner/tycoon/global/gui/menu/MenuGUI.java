@@ -7,43 +7,50 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.kimgooner.tycoon.db.dao.*;
+import org.kimgooner.tycoon.GlobalController;
+import org.kimgooner.tycoon.db.GlobalDAOController;
+import org.kimgooner.tycoon.db.dao.MemberDAO;
 import org.kimgooner.tycoon.db.dao.job.combat.CombatDAO;
 import org.kimgooner.tycoon.db.dao.job.farming.FarmingDAO;
 import org.kimgooner.tycoon.db.dao.job.fishing.FishingDAO;
 import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.item.global.ItemBuilder;
+import org.kimgooner.tycoon.job.mining.MiningStat;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class MenuGUI {
-    private final JavaPlugin plugin;
-    private final GlobalGUIController globalGuiController;
+    private final GlobalGUIController globalGUIController;
+
+    private final ChestGui menuGUI;
     private final MemberDAO memberDAO;
     private final MiningDAO miningDAO;
     private final FarmingDAO farmingDAO;
     private final FishingDAO fishingDAO;
     private final CombatDAO combatDAO;
 
-    private ChestGui menuGUI;
+    private final Map<UUID, MiningStat> miningStatMap;
+    public MenuGUI(JavaPlugin plugin, GlobalGUIController globalGUIController, GlobalDAOController globalDAOController, GlobalController globalController) {
+        this.globalGUIController = globalGUIController;
 
-    public MenuGUI(JavaPlugin plugin, GlobalGUIController globalGuiController, MemberDAO memberDAO, MiningDAO miningDAO, FarmingDAO farmingDAO, FishingDAO fishingDAO, CombatDAO combatDAO) {
-        this.plugin = plugin;
-        this.globalGuiController = globalGuiController;
-        this.memberDAO = memberDAO;
-        this.miningDAO = miningDAO;
-        this.farmingDAO = farmingDAO;
-        this.fishingDAO = fishingDAO;
-        this.combatDAO = combatDAO;
 
+        this.memberDAO = globalDAOController.getMemberDAO();
+        this.miningDAO = globalDAOController.getMiningDAO();
+        this.farmingDAO = globalDAOController.getFarmingDAO();
+        this.fishingDAO = globalDAOController.getFishingDAO();
+        this.combatDAO = globalDAOController.getCombatDAO();
+
+        this.miningStatMap = globalController.getMiningOverallMap();
         InputStream xmlStream = plugin.getResource("gui/menu/menu.xml");
         if (xmlStream == null) {
             throw new IllegalStateException("리소스를 찾을 수 없습니다.");
         }
-        menuGUI = ChestGui.load(this, xmlStream);
-        menuGUI.setOnGlobalClick(event -> event.setCancelled(true));
+        this.menuGUI = ChestGui.load(this, xmlStream);
+        this.menuGUI.setOnGlobalClick(event -> event.setCancelled(true));
     }
 
     private final List<Double> EXP_LISTS = List.of(
@@ -57,7 +64,10 @@ public class MenuGUI {
 
     public void open(Player player) {
         ChestGui playerMenu = menuGUI.copy();
-        MiningDAO.MiningStats miningStats = miningDAO.getMiningStats(player);
+        MiningStat miningStat = miningStatMap.get(player.getUniqueId());
+        int miningLevel = miningDAO.getLevel(player);
+        double miningExp = miningDAO.getExp(player);;
+
         FarmingDAO.FarmingStats farmingStats = farmingDAO.getFarmingStats(player);
         FishingDAO.FishingStats fishingStats = fishingDAO.getFishingStats(player);
         CombatDAO.CombatStats combatStats = combatDAO.getCombatStats(player);
@@ -66,18 +76,18 @@ public class MenuGUI {
                 .hideAttributeModifiers()
                 .displayName(Component.text("§f채광 스텟"))
                 .addLore(Component.text("§7숙련도:"))
-                .addLore(Component.text(String.format(" §f레벨: %,d", miningStats.getLevel())))
-                .addLore(Component.text(String.format(" §f경험치: %,.1f", miningStats.getExp())))
-                .addLore(Component.text(" " + makePercentBar(miningStats.getExp(), EXP_LISTS.get(miningStats.getLevel()))))
+                .addLore(Component.text(String.format(" §f레벨: %,d", miningLevel)))
+                .addLore(Component.text(String.format(" §f경험치: %,.1f", miningExp)))
+                .addLore(Component.text(" " + makePercentBar(miningExp, EXP_LISTS.get(miningLevel))))
                 .addLore(Component.text(" §f채광 경험치 획득량:"))
                 .addLore(Component.text(" §7레벨 보너스:"))
-                .addLore(Component.text(String.format("  §f채광 속도: §6+%,d ☘", miningStats.getLevel() * 4)))
+                .addLore(Component.text(String.format("  §f채광 속도: §6+%,d ☘", miningLevel * 4)))
                 .addLore(Component.text("§7스텟:"))
-                .addLore(Component.text(String.format(" §f채광 속도: §6%,d ⸕", miningStats.getSpeed())))
-                .addLore(Component.text(String.format(" §f채광 행운: §6%,d ☘", miningStats.getFortune())))
-                .addLore(Component.text(String.format(" §f연쇄 파괴: §e%,d ▚", miningStats.getSpread())))
-                .addLore(Component.text(String.format(" §f순수: §5%,d ✧", miningStats.getPristine())))
-                .addLore(Component.text(String.format(" §f빛: §e%,d ✦", miningStats.getLight())))
+                .addLore(Component.text(String.format(" §f채광 속도: §6%,d ⸕", miningStat.getSpeed())))
+                .addLore(Component.text(String.format(" §f채광 행운: §6%,d ☘", miningStat.getFortune())))
+                .addLore(Component.text(String.format(" §f연쇄 파괴: §e%,d ▚", miningStat.getSpread())))
+                .addLore(Component.text(String.format(" §f순수: §5%.1f ✧", miningStat.getPristine())))
+                .addLore(Component.text(String.format(" §f빛: §e%,d ✦", miningStat.getLight())))
                 .build();
         ItemStack statFarming = new ItemBuilder(Material.DIAMOND_HOE)
                 .hideAttributeModifiers()
@@ -186,10 +196,10 @@ public class MenuGUI {
 
     public void toDataChest(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
-        globalGuiController.openDataChest(event);
+        globalGUIController.openDataChest(event);
     }
 
     public void toClose(InventoryClickEvent event) {
-        globalGuiController.closeInventory(event);
+        globalGUIController.closeInventory(event);
     }
 }

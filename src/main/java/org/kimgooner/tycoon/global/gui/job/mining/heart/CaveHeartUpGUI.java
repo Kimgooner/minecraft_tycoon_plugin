@@ -24,9 +24,9 @@ public class CaveHeartUpGUI {
 
     private ChestGui caveHeartUpGUI;
 
-    public CaveHeartUpGUI(JavaPlugin plugin, GlobalGUIController globalGuiController) {
+    public CaveHeartUpGUI(JavaPlugin plugin, GlobalGUIController globalGUIController) {
         this.plugin = plugin;
-        this.globalGuiController = globalGuiController;
+        this.globalGuiController = globalGUIController;
 
         InputStream xmlStream = plugin.getResource("gui/npc/mining-caveheart-2.xml");
         if (xmlStream == null) {

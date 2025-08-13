@@ -8,18 +8,36 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.GlobalDAOController;
 import org.kimgooner.tycoon.global.gui.menu.MenuItemUtil;
+import org.kimgooner.tycoon.job.mining.MiningStat;
+import org.kimgooner.tycoon.job.mining.MiningStatManager;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 public class GlobalEventHandler implements Listener {
-    private final GlobalDAOController globalDAOController;
     private final JavaPlugin plugin;
 
-    public GlobalEventHandler(GlobalDAOController globalDAOController, JavaPlugin plugin) {
-        this.globalDAOController = globalDAOController;
+    private final GlobalDAOController globalDAOController;
+
+    private final Set<UUID> initializedPlayers;
+    private final Map<UUID, MiningStat> miningStatMap;
+    private final MiningStatManager miningStatManager;
+
+    public GlobalEventHandler(JavaPlugin plugin, GlobalController globalController) {
         this.plugin = plugin;
+
+        this.globalDAOController = globalController.getGlobalDaoController();
+
+        this.initializedPlayers = globalController.getInitializedPlayers();
+        this.miningStatMap = globalController.getMiningOverallMap();
+        this.miningStatManager = globalController.getMiningController().getMiningStatManager();
     }
 
     @EventHandler
@@ -86,6 +104,13 @@ public class GlobalEventHandler implements Listener {
         plugin.getLogger().info(player.getName() + "의 DB 확인 완료.");
     }
 
+    public void initStatManager(Player player){
+        if(!miningStatMap.containsKey(player.getUniqueId())) {
+            miningStatMap.put(player.getUniqueId(), miningStatManager.getCachedStat(player));
+            plugin.getLogger().info(player.getName() + "의 초기 채광 스텟 세팅 생성.");
+        }
+    }
+
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -94,7 +119,22 @@ public class GlobalEventHandler implements Listener {
 
         // 멤버
         Player player = event.getPlayer();
-        initTable(player);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            initTable(player);
+            initStatManager(player);
+
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                initializedPlayers.add(player.getUniqueId());
+                plugin.getLogger().info(player.getName() + " 초기 세팅 완료.");
+            });
+        });
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        initializedPlayers.remove(player.getUniqueId());
+        plugin.getLogger().info(player.getName() + " 초기 세팅 여부 삭제.");
     }
 
     @EventHandler

@@ -165,7 +165,7 @@ public class CaveHeartUtil {
             Map.entry(26, "채광 이벤트 보너스: 상자"),
             Map.entry(27, "순수 증가 II"),
             Map.entry(28, "움브랄나이트 탐사"),
-            Map.entry(29, "행운 증가 II"),
+            Map.entry(29, "빛 증가 II"),
             Map.entry(30, "채광 이벤트 보너스: 가루"),
 
             Map.entry(31, "광석 변이"),
@@ -265,7 +265,7 @@ public class CaveHeartUtil {
                     "§8미탐사 구역 - 0.2%",
                     "§8종착점 - 0.27%"
             )),
-            Map.entry(8, (level) -> List.of("§e연쇄 파괴 ▚ §f: " + "§a+%d §f-> §8+%d".formatted((level)*3, (level+1)*3))),
+            Map.entry(8, (level) -> List.of("§e연쇄 파괴 ▚ §f: " + "§a+%d §f-> §8+%d".formatted((level)*2, (level+1)*2))),
             Map.entry(9, (level) -> List.of("§e상위 보물 상자 §f발견 확률 §f: " + "§a+%d%% §f-> §8+%d%% §f증가".formatted(level, level+1),
                     "§8광산에서 보물 상자를 획득할 때",
                     "§8상위 보물 상자를 획득할 확률을 증가시킵니다. (기본 20%)"

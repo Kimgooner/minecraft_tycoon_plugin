@@ -2,7 +2,7 @@ package org.kimgooner.tycoon.db.dao.job;
 
 import java.util.List;
 
-public class JonDAOUtil {
+public class JobDAOUtil {
     public final List<Double> EXP_LISTS = List.of(
             50.0, 125.0, 200.0, 300.0, 500.0, 750.0, 1000.0, 1500.0, 2000.0,
             3500.0, 5000.0, 7500.0, 10000.0, 15000.0, 20000.0, 30000.0, 50000.0, 75000.0, 100000.0,

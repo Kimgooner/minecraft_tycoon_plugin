@@ -11,6 +11,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 
 import java.io.InputStream;
@@ -37,9 +38,9 @@ public class MineTeleportGUI {
             new Location(world, -38.5, 15, 466.5, 0, 0)
     );
 
-    public MineTeleportGUI(JavaPlugin plugin, GlobalGUIController globalGuiController) {
+    public MineTeleportGUI(JavaPlugin plugin, GlobalController globalController) {
         this.plugin = plugin;
-        this.globalGuiController = globalGuiController;
+        this.globalGuiController = globalController.getGlobalGuiController();
         InputStream xmlStream = plugin.getResource("gui/mining/mineTeleport.xml");
         if (xmlStream == null) {
             throw new IllegalStateException("리소스를 찾을 수 없습니다.");

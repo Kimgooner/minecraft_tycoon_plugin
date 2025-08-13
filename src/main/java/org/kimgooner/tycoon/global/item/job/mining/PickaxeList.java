@@ -18,12 +18,8 @@ public class PickaxeList {
                 .unbreakable(true)
                 .displayName(Component.text("테스트용").color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false))
                 .setPower(2)
-                .setSpeed(100)
+                .setSpeed(600)
                 .setFortune(140)
-                .setPristine(5)
-                .setEnchantSpeed(0)
-                .setEnchantFortune(7)
-                .setEnchantPristine(4)
                 .build();
     }
 

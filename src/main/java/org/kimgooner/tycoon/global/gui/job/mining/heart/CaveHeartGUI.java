@@ -10,6 +10,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.dao.job.mining.HeartDAO;
 import org.kimgooner.tycoon.db.dao.job.mining.HeartInfoDAO;
 import org.kimgooner.tycoon.global.global.SoundUtil;
@@ -21,7 +22,6 @@ import java.io.InputStream;
 import java.util.List;
 
 public class CaveHeartGUI {
-    private final JavaPlugin plugin;
     private final GlobalGUIController globalGuiController;
     private final HeartDAO heartDAO;
     private final HeartInfoDAO heartInfoDAO;
@@ -30,11 +30,11 @@ public class CaveHeartGUI {
 
     private ChestGui caveHeartGUI;
 
-    public CaveHeartGUI(JavaPlugin plugin, HeartDAO heartDAO, HeartInfoDAO heartInfoDAO, GlobalGUIController globalGuiController) {
-        this.plugin = plugin;
-        this.globalGuiController = globalGuiController;
-        this.heartDAO = heartDAO;
-        this.heartInfoDAO = heartInfoDAO;
+    public CaveHeartGUI(JavaPlugin plugin, GlobalGUIController globalGUIController, GlobalController globalController) {
+        this.globalGuiController = globalGUIController;
+
+        this.heartDAO = globalController.getGlobalDaoController().getHeartDAO();
+        this.heartInfoDAO = globalController.getGlobalDaoController().getHeartInfoDAO();
         this.util = new CaveHeartUtil(heartDAO, plugin);
 
         InputStream xmlStream = plugin.getResource("gui/npc/mining-caveheart.xml");

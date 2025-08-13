@@ -1,10 +1,11 @@
-package org.kimgooner.tycoon.job.mining.heart;
+package org.kimgooner.tycoon.job.mining.command;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.dao.job.mining.HeartDAO;
 import org.kimgooner.tycoon.db.dao.job.mining.HeartInfoDAO;
 
@@ -13,10 +14,10 @@ public class HeartCommandHandler implements CommandExecutor {
     private final HeartDAO heartDAO;
     private final HeartInfoDAO heartInfoDAO;
 
-    public HeartCommandHandler(JavaPlugin plugin, HeartDAO heartDAO, HeartInfoDAO heartInfoDAO) {
+    public HeartCommandHandler(JavaPlugin plugin, GlobalController globalController) {
         this.plugin = plugin;
-        this.heartDAO = heartDAO;
-        this.heartInfoDAO = heartInfoDAO;
+        this.heartDAO = globalController.getGlobalDaoController().getHeartDAO();
+        this.heartInfoDAO = globalController.getGlobalDaoController().getHeartInfoDAO();
     }
 
     @Override

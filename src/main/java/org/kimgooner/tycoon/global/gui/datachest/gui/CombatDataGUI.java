@@ -4,20 +4,17 @@ import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.kimgooner.tycoon.db.dao.DataStorageDAO;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 
 import java.io.InputStream;
 
 public class CombatDataGUI {
-    private final DataStorageDAO dataStorageDAO;
     private final GlobalGUIController globalGuiController;
 
     private final ChestGui combatDataGUI;
 
-    public CombatDataGUI(JavaPlugin plugin, DataStorageDAO dataStorageDAO, GlobalGUIController globalGuiController) {
-        this.dataStorageDAO = dataStorageDAO;
-        this.globalGuiController = globalGuiController;
+    public CombatDataGUI(JavaPlugin plugin, GlobalGUIController globalGUIController) {
+        this.globalGuiController = globalGUIController;
 
         InputStream xmlStream = plugin.getResource("gui/datachest/datachest-combat.xml");
         if (xmlStream == null) {

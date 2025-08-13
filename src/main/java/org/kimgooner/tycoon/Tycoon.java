@@ -2,26 +2,18 @@ package org.kimgooner.tycoon;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.db.DatabaseManager;
 import org.kimgooner.tycoon.discord.DiscordWebhookListener;
 import org.kimgooner.tycoon.discord.DiscordWebhookSender;
 import org.kimgooner.tycoon.global.gui.menu.MenuItemUtil;
-import org.kimgooner.tycoon.global.item.job.mining.PickaxeList;
 import org.kimgooner.tycoon.util.EnvLoader;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
+@Getter
 public final class Tycoon extends JavaPlugin {
     private static HikariDataSource dataSource;
-    private final Set<UUID> editModePlayers = new HashSet<>();
-
-    public Set<UUID> getEditModePlayers() {
-        return editModePlayers;
-    }
 
     @Override
     public void onEnable() {
@@ -57,7 +49,6 @@ public final class Tycoon extends JavaPlugin {
 
                 // 나머지 초기화 코드
                 MenuItemUtil.init(this);
-                PickaxeList pickaxeList = new PickaxeList(this);
 
                 DiscordWebhookSender sender = new DiscordWebhookSender(this);
                 getServer().getPluginManager().registerEvents(sender, this);

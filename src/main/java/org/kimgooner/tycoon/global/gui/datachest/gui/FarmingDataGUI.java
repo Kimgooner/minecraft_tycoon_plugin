@@ -4,6 +4,7 @@ import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
 import org.kimgooner.tycoon.global.global.SoundUtil;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
@@ -17,9 +18,9 @@ public class FarmingDataGUI {
 
     private final ChestGui farmingChestGui;
 
-    public FarmingDataGUI(JavaPlugin plugin, DataStorageDAO dataStorageDAO, GlobalGUIController globalGuiController) {
-        this.dataStorageDAO = dataStorageDAO;
-        this.globalGuiController = globalGuiController;
+    public FarmingDataGUI(JavaPlugin plugin, GlobalController globalController, GlobalGUIController globalGUIController) {
+        this.dataStorageDAO = globalController.getGlobalDaoController().getDataStorageDAO();
+        this.globalGuiController = globalGUIController;
 
         InputStream xmlStream = plugin.getResource("gui/datachest/datachest-farming.xml");
         if (xmlStream == null) {

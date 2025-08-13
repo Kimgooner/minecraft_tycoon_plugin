@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HeartDAO {
     private final DatabaseManager databaseManager;
@@ -82,5 +84,22 @@ public class HeartDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public Map<Integer, Integer> getAllLevels(Player player) {
+        String sql = "SELECT slot_index, value FROM cave_heart WHERE member_uuid = ?";
+        Map<Integer, Integer> levelMap = new HashMap<>();
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, player.getUniqueId().toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    levelMap.put(rs.getInt("slot_index"), rs.getInt("value"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return levelMap;
     }
 }

@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
 import org.kimgooner.tycoon.global.global.SoundUtil;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
@@ -49,9 +50,9 @@ public class MiningDataGUI {
             "다이아몬드"
     );
 
-    public MiningDataGUI(JavaPlugin plugin, DataStorageDAO dataStorageDAO, GlobalGUIController globalGuiController) {
-        this.dataStorageDAO = dataStorageDAO;
-        this.globalGuiController = globalGuiController;
+    public MiningDataGUI(JavaPlugin plugin, GlobalController globalController, GlobalGUIController globalGUIController) {
+        this.dataStorageDAO = globalController.getGlobalDaoController().getDataStorageDAO();
+        this.globalGuiController = globalGUIController;
 
         InputStream xmlStream = plugin.getResource("gui/datachest/datachest-mining.xml");
         if (xmlStream == null) {

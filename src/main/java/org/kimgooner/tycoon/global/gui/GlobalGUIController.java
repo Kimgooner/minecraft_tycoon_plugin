@@ -1,28 +1,24 @@
 package org.kimgooner.tycoon.global.gui;
 
+import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.kimgooner.tycoon.db.dao.*;
-import org.kimgooner.tycoon.db.dao.job.combat.CombatDAO;
-import org.kimgooner.tycoon.db.dao.job.farming.FarmingDAO;
-import org.kimgooner.tycoon.db.dao.job.fishing.FishingDAO;
-import org.kimgooner.tycoon.db.dao.job.mining.HeartDAO;
-import org.kimgooner.tycoon.db.dao.job.mining.HeartInfoDAO;
-import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
+import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.global.global.SoundUtil;
 import org.kimgooner.tycoon.global.gui.datachest.gui.*;
-import org.kimgooner.tycoon.global.gui.job.mining.*;
+import org.kimgooner.tycoon.global.gui.job.mining.MineTeleportGUI;
 import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartEventHandler;
 import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartGUI;
 import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartUpEventHandler;
 import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartUpGUI;
 import org.kimgooner.tycoon.global.gui.menu.MenuGUI;
 
+@Getter
 public class GlobalGUIController {
     private final SoundUtil soundUtil = new SoundUtil();
-
     private final MenuGUI menuGUI;
+
     private final DataChestGUI dataChestGUI;
     private final MiningDataGUI miningDataGUI;
     private final FarmingDataGUI farmingDataGUI;
@@ -35,32 +31,24 @@ public class GlobalGUIController {
 
     public GlobalGUIController(
             JavaPlugin plugin,
-            MemberDAO memberDAO,
-            MiningDAO miningDAO,
-            FarmingDAO farmingDAO,
-            FishingDAO fishingDAO,
-            CombatDAO combatDAO,
-            DataStorageDAO dataStorageDAO,
-            HeartDAO heartDAO,
-            HeartInfoDAO heartInfoDAO
+            GlobalController globalController
     )
     {
         plugin.getServer().getPluginManager().registerEvents(new GlobalGUIHandler(), plugin);
+        this.menuGUI = new MenuGUI(plugin, this, globalController.getGlobalDaoController(), globalController);
 
-        this.menuGUI = new MenuGUI(plugin, this, memberDAO, miningDAO, farmingDAO, fishingDAO, combatDAO);
+        this.miningDataGUI = new MiningDataGUI(plugin, globalController, this);
+        this.farmingDataGUI = new FarmingDataGUI(plugin, globalController, this);
+        this.combatDataGUI = new CombatDataGUI(plugin, this);
+        this.fishingDataGUI = new FishingDataGUI(plugin, globalController, this);
         this.dataChestGUI = new DataChestGUI(plugin, this);
-        this.miningDataGUI = new MiningDataGUI(plugin, dataStorageDAO, this);
-        this.farmingDataGUI = new FarmingDataGUI(plugin, dataStorageDAO, this);
-        this.combatDataGUI = new CombatDataGUI(plugin, dataStorageDAO, this);
-        this.fishingDataGUI = new FishingDataGUI(plugin, dataStorageDAO, this);
 
-        this.mineTeleportGUI = new MineTeleportGUI(plugin, this);
+        this.mineTeleportGUI = new MineTeleportGUI(plugin, globalController);
 
-        this.caveHeartGUI = new CaveHeartGUI(plugin, heartDAO,heartInfoDAO, this);
+        this.caveHeartGUI = new CaveHeartGUI(plugin, this, globalController);
         this.caveHeartUpGUI = new CaveHeartUpGUI(plugin, this);
-        plugin.getServer().getPluginManager().registerEvents(new CaveHeartEventHandler(plugin, heartDAO, heartInfoDAO), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new CaveHeartEventHandler(plugin, globalController), plugin);
         plugin.getServer().getPluginManager().registerEvents(new CaveHeartUpEventHandler(), plugin);
-
     }
 
     public void closeInventory(InventoryClickEvent event) {

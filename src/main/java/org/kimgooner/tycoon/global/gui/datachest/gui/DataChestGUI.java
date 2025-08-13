@@ -14,8 +14,8 @@ public class DataChestGUI {
     private final GlobalGUIController globalGuiController;
     private final SoundUtil soundUtil = new SoundUtil();
 
-    public DataChestGUI(JavaPlugin plugin, GlobalGUIController globalGuiController) {
-        this.globalGuiController = globalGuiController;
+    public DataChestGUI(JavaPlugin plugin, GlobalGUIController globalGUIController) {
+        this.globalGuiController = globalGUIController;
 
         InputStream xmlStream = plugin.getResource("gui/datachest/datachest.xml");
         if (xmlStream == null) {

@@ -19,7 +19,7 @@ public class DatabaseManager {
             Statement stmt = connection.createStatement()) {
 
             dropAllTables(connection); // 테스트용, 나중엔 필히 삭제.
-            // members
+            // 플레이어 정보
             stmt.executeUpdate("""
             CREATE TABLE IF NOT EXISTS members (
                 id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -29,20 +29,40 @@ public class DatabaseManager {
             );
         """);
 
-            // minings
+            // 채광 레벨
             stmt.executeUpdate("""
             CREATE TABLE IF NOT EXISTS minings (
                 id INTEGER PRIMARY KEY AUTO_INCREMENT,
                 member_uuid varchar(100) NOT NULL,
                 level INTEGER DEFAULT 1,
                 exp DOUBLE DEFAULT 0,
-                wisdom INTEGER DEFAULT 0,
-                fortune INTEGER DEFAULT 0,
-                speed INTEGER DEFAULT 0,
-                pristine INTEGER DEFAULT 0,
-                power INTEGER DEFAULT 0,
-                light INTEGER DEFAULT 0,
-                spread INTEGER DEFAULT 0,
+                FOREIGN KEY(member_uuid) REFERENCES members(uuid),
+                UNIQUE(member_uuid)
+            );
+        """);
+            // 동굴의 심장 스텟 레벨 정보
+            stmt.executeUpdate("""
+            CREATE TABLE IF NOT EXISTS cave_heart (
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                member_uuid varchar(100) NOT NULL,
+                slot_index INTEGER NOT NULL,
+                value INTEGER NOT NULL,
+                FOREIGN KEY(member_uuid) REFERENCES members(uuid),
+                UNIQUE(member_uuid, slot_index)
+            );
+        """);
+            // 동굴의 심장 정보
+            stmt.executeUpdate("""
+            CREATE TABLE IF NOT EXISTS cave_heart_info (
+                id INTEGER PRIMARY KEY AUTO_INCREMENT,
+                member_uuid varchar(100) NOT NULL,
+                level INTEGER NOT NULL,
+                heart_key INTEGER NOT NULL,
+                low_powder INTEGER NOT NULL,
+                high_powder INTEGER NOT NULL,
+                used_heart_key INTEGER NOT NULL,
+                used_low_powder INTEGER NOT NULL,
+                used_high_powder INTEGER NOT NULL,
                 FOREIGN KEY(member_uuid) REFERENCES members(uuid),
                 UNIQUE(member_uuid)
             );
@@ -107,34 +127,6 @@ public class DatabaseManager {
                 amount INTEGER DEFAULT 0,       -- 보유 수량
                 FOREIGN KEY(member_uuid) REFERENCES members(uuid),
                 UNIQUE(member_uuid, category_id, slot_index)
-            );
-        """);
-
-            // cave_heart
-            stmt.executeUpdate("""
-            CREATE TABLE IF NOT EXISTS cave_heart (
-                id INTEGER PRIMARY KEY AUTO_INCREMENT,
-                member_uuid varchar(100) NOT NULL,
-                slot_index INTEGER NOT NULL,
-                value INTEGER NOT NULL,
-                FOREIGN KEY(member_uuid) REFERENCES members(uuid),
-                UNIQUE(member_uuid, slot_index)
-            );
-        """);
-
-            stmt.executeUpdate("""
-            CREATE TABLE IF NOT EXISTS cave_heart_info (
-                id INTEGER PRIMARY KEY AUTO_INCREMENT,
-                member_uuid varchar(100) NOT NULL,
-                level INTEGER NOT NULL,
-                heart_key INTEGER NOT NULL,
-                low_powder INTEGER NOT NULL,
-                high_powder INTEGER NOT NULL,
-                used_heart_key INTEGER NOT NULL,
-                used_low_powder INTEGER NOT NULL,
-                used_high_powder INTEGER NOT NULL,
-                FOREIGN KEY(member_uuid) REFERENCES members(uuid),
-                UNIQUE(member_uuid)
             );
         """);
         } catch (SQLException e) {

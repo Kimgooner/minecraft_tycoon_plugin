@@ -12,6 +12,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.dao.job.mining.HeartDAO;
 import org.kimgooner.tycoon.db.dao.job.mining.HeartInfoDAO;
 import org.kimgooner.tycoon.global.global.SoundUtil;
@@ -22,14 +23,12 @@ import java.util.List;
 public class CaveHeartEventHandler implements Listener {
     private final HeartDAO heartDAO;
     private final HeartInfoDAO heartInfoDAO;
-    private final JavaPlugin plugin;
     private final CaveHeartUtil util;
     private final SoundUtil soundUtil = new SoundUtil();
 
-    public CaveHeartEventHandler(JavaPlugin plugin, HeartDAO heartDAO, HeartInfoDAO heartInfoDAO) {
-        this.heartDAO = heartDAO;
-        this.heartInfoDAO = heartInfoDAO;
-        this.plugin = plugin;
+    public CaveHeartEventHandler(JavaPlugin plugin, GlobalController globalController) {
+        this.heartDAO = globalController.getGlobalDaoController().getHeartDAO();
+        this.heartInfoDAO = globalController.getGlobalDaoController().getHeartInfoDAO();
         this.util = new CaveHeartUtil(heartDAO, plugin);
     }
 
