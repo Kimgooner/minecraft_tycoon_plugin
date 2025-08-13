@@ -20,6 +20,8 @@ import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class CaveHeartGUI {
     private final GlobalGUIController globalGuiController;
@@ -46,31 +48,52 @@ public class CaveHeartGUI {
     }
 
     public void reloadSlot(Inventory gui, Player player) {
+        Map<Integer, Integer> heartLevels = heartDAO.getAllLevels(player);
         for(int i = 1; i <= util.STATS_LOCATIONS.size(); i++) {
             ItemStack baseItem = new ItemStack(Material.COAL);
-            Integer level = heartDAO.getLevel(player, i);
-            if(level > 0){
-                baseItem = new ItemStack(Material.EMERALD, level);
+            Integer level = heartLevels.get(i);
+            if(!Objects.equals(level, util.STAT_DATA.get(i).cap())) {
+                if(level > 0) baseItem = new ItemStack(Material.EMERALD, level);
+                List<String> moreLore = util.STAT_DESCRIPTION.get(i).apply(level);
+                ItemBuilder builder = new ItemBuilder(baseItem)
+                        .displayName(Component.text(util.STAT_NAMES.get(i)).color(util.getColor(level)).decoration(TextDecoration.ITALIC, false))
+                        .addLore(Component.text("§f레벨: %d/§8%d".formatted(level, util.STAT_DATA.get(i).cap())))
+                        .addLore(Component.text(""))
+                        .addLore(Component.text("§f효과:"));
+
+                for (String s : moreLore) {
+                    builder.addLore(Component.text(s));
+                }
+
+                ItemStack stat = builder
+                        .addLore(Component.text(" "))
+                        .addLore(Component.text("§f비용:"))
+                        .addLore(Component.text(util.getCost(i, level)))
+                        .build();
+
+                gui.setItem(util.STATS_LOCATIONS.get(i), stat);
             }
+            else{
+                baseItem = new ItemStack(Material.EMERALD_BLOCK, level);
+                List<String> moreLore = util.STAT_DESCRIPTION_MAX.get(i).apply(level);
+                ItemBuilder builder = new ItemBuilder(baseItem)
+                        .displayName(Component.text(util.STAT_NAMES.get(i)).color(util.getColor(level)).decoration(TextDecoration.ITALIC, false))
+                        .addLore(Component.text("§f레벨: %d/§8%d".formatted(level, util.STAT_DATA.get(i).cap())))
+                        .addLore(Component.text(""))
+                        .addLore(Component.text("§f효과:"));
 
-            List<String> moreLore = util.STAT_DESCRIPTION.get(i).apply(level);
-            ItemBuilder builder = new ItemBuilder(baseItem)
-                    .displayName(Component.text(util.STAT_NAMES.get(i)).color(util.getColor(level)).decoration(TextDecoration.ITALIC, false))
-                    .addLore(Component.text("§f레벨: %d/§8%d".formatted(level, util.STAT_DATA.get(i).cap())))
-                    .addLore(Component.text(""))
-                    .addLore(Component.text("§f효과:"));
+                for (String s : moreLore) {
+                    builder.addLore(Component.text(s));
+                }
 
-            for(String s : moreLore){
-                builder.addLore(Component.text(s));
+                ItemStack stat = builder
+                        .addLore(Component.text(" "))
+                        .addLore(Component.text("§f비용:"))
+                        .addLore(Component.text("§a최대 레벨입니다!"))
+                        .build();
+
+                gui.setItem(util.STATS_LOCATIONS.get(i), stat);
             }
-
-            ItemStack stat = builder
-                    .addLore(Component.text(" "))
-                    .addLore(Component.text("§f비용:"))
-                    .addLore(Component.text(util.getCost(i, level)))
-                    .build();
-
-            gui.setItem(util.STATS_LOCATIONS.get(i), stat);
         }
     }
 

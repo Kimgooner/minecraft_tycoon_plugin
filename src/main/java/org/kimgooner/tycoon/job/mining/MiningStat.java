@@ -75,6 +75,7 @@ public class MiningStat {
         else return guaranteed;
     }
 
+    public void bonusMul(int bonus) {fortune = (int) (fortune * (1 + (bonus * 5.0) / 100));}
     public int calcFortune() {return getCount(fortune);}
     public int calcSpread() {return getCount(spread);}
     public double calcExp(double exp) {return exp * (1 + (wisdom / 100.0));}

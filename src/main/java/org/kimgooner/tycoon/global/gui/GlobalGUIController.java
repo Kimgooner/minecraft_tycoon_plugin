@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.GlobalController;
+import org.kimgooner.tycoon.db.GlobalDAOController;
 import org.kimgooner.tycoon.global.global.SoundUtil;
 import org.kimgooner.tycoon.global.gui.datachest.gui.*;
 import org.kimgooner.tycoon.global.gui.job.mining.MineTeleportGUI;
@@ -13,6 +14,7 @@ import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartGUI;
 import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartUpEventHandler;
 import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartUpGUI;
 import org.kimgooner.tycoon.global.gui.menu.MenuGUI;
+import org.kimgooner.tycoon.job.mining.MiningController;
 
 @Getter
 public class GlobalGUIController {
@@ -31,11 +33,16 @@ public class GlobalGUIController {
 
     public GlobalGUIController(
             JavaPlugin plugin,
+            GlobalDAOController globalDAOController,
+            MiningController miningController,
             GlobalController globalController
     )
     {
         plugin.getServer().getPluginManager().registerEvents(new GlobalGUIHandler(), plugin);
-        this.menuGUI = new MenuGUI(plugin, this, globalController.getGlobalDaoController(), globalController);
+        this.menuGUI = new MenuGUI(plugin,
+                this,
+                globalDAOController,
+                miningController);
 
         this.miningDataGUI = new MiningDataGUI(plugin, globalController, this);
         this.farmingDataGUI = new FarmingDataGUI(plugin, globalController, this);

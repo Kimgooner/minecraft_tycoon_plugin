@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,45 +20,73 @@ import org.kimgooner.tycoon.global.global.SoundUtil;
 import org.kimgooner.tycoon.global.item.global.ItemBuilder;
 
 import java.util.List;
+import java.util.Objects;
 
 public class CaveHeartEventHandler implements Listener {
+    private final JavaPlugin plugin;
     private final HeartDAO heartDAO;
     private final HeartInfoDAO heartInfoDAO;
     private final CaveHeartUtil util;
     private final SoundUtil soundUtil = new SoundUtil();
 
     public CaveHeartEventHandler(JavaPlugin plugin, GlobalController globalController) {
+        this.plugin = plugin;
         this.heartDAO = globalController.getGlobalDaoController().getHeartDAO();
         this.heartInfoDAO = globalController.getGlobalDaoController().getHeartInfoDAO();
         this.util = new CaveHeartUtil(heartDAO, plugin);
     }
 
     public void reloadSpecificSlot(Inventory gui, Player player, Integer slot) {
-        Integer i = util.LOCATIONS.get(slot);
-        ItemStack baseItem = new ItemStack(Material.COAL);
-        Integer level = heartDAO.getLevel(player, i);
-        if(level > 0){
-            baseItem = new ItemStack(Material.EMERALD, level);
-        }
-
-        List<String> moreLore = util.STAT_DESCRIPTION.get(i).apply(level);
-        ItemBuilder builder = new ItemBuilder(baseItem)
-                .displayName(Component.text(util.STAT_NAMES.get(i)).color(util.getColor(level)).decoration(TextDecoration.ITALIC, false))
-                .addLore(Component.text("§f레벨: %d/§8%d".formatted(level, util.STAT_DATA.get(i).cap())))
-                .addLore(Component.text(""))
-                .addLore(Component.text("§f효과:"));
-
-        for(String s : moreLore){
-            builder.addLore(Component.text(s));
-        }
-
-        ItemStack stat = builder
-                .addLore(Component.text(" "))
-                .addLore(Component.text("§f비용:"))
-                .addLore(Component.text(util.getCost(i, level)))
+        ItemStack buffer = new ItemBuilder(Material.GREEN_CONCRETE)
+                .displayName(Component.text("§a업그레이드 완료!"))
                 .build();
+        gui.setItem(slot, buffer);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Integer i = util.LOCATIONS.get(slot);
+            Integer level = heartDAO.getLevel(player, i);
+            ItemStack baseItem = new ItemStack(Material.COAL);
+            if (!Objects.equals(level, util.STAT_DATA.get(i).cap())) {
+                if (level > 0) baseItem = new ItemStack(Material.EMERALD, level);
+                List<String> moreLore = util.STAT_DESCRIPTION.get(i).apply(level);
+                ItemBuilder builder = new ItemBuilder(baseItem)
+                        .displayName(Component.text(util.STAT_NAMES.get(i)).color(util.getColor(level)).decoration(TextDecoration.ITALIC, false))
+                        .addLore(Component.text("§f레벨: %d/§8%d".formatted(level, util.STAT_DATA.get(i).cap())))
+                        .addLore(Component.text(""))
+                        .addLore(Component.text("§f효과:"));
 
-        gui.setItem(slot, stat);
+                for (String s : moreLore) {
+                    builder.addLore(Component.text(s));
+                }
+
+                ItemStack stat = builder
+                        .addLore(Component.text(" "))
+                        .addLore(Component.text("§f비용:"))
+                        .addLore(Component.text(util.getCost(i, level)))
+                        .build();
+
+                gui.setItem(util.STATS_LOCATIONS.get(i), stat);
+            } else {
+                baseItem = new ItemStack(Material.EMERALD_BLOCK, level);
+                List<String> moreLore = util.STAT_DESCRIPTION_MAX.get(i).apply(level);
+                ItemBuilder builder = new ItemBuilder(baseItem)
+                        .displayName(Component.text(util.STAT_NAMES.get(i)).color(util.getColor(level)).decoration(TextDecoration.ITALIC, false))
+                        .addLore(Component.text("§f레벨: %d/§8%d".formatted(level, util.STAT_DATA.get(i).cap())))
+                        .addLore(Component.text(""))
+                        .addLore(Component.text("§f효과:"));
+
+                for (String s : moreLore) {
+                    builder.addLore(Component.text(s));
+                }
+
+                ItemStack stat = builder
+                        .addLore(Component.text(" "))
+                        .addLore(Component.text("§f비용:"))
+                        .addLore(Component.text("§a최대 레벨입니다!"))
+                        .build();
+
+                gui.setItem(util.STATS_LOCATIONS.get(i), stat);
+            }
+        }, 5L);
     }
 
     public void reloadHeartAndReset(Inventory gui, Player player) {

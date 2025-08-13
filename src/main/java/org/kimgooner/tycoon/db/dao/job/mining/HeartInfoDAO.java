@@ -36,7 +36,7 @@ public class HeartInfoDAO {
     );
 
     public void sendHeartLevelUpMessage(Player player, Integer level) {
-        player.sendMessage(Component.text("§f[시스템]: §5동굴의 심장 §f등급이 상승했습니다! §84 §f-> §55"));
+        player.sendMessage(Component.text("§f[시스템]: §5동굴의 심장 §f등급이 상승했습니다! §8%d §f-> §5%d".formatted(level-1, level)));
         player.sendMessage(Component.text("§f[시스템]: §f등급 달성 보너스:"));
         player.sendMessage(Component.text("§f[시스템]:  §8+§5%d 심장 해방의 열쇠".formatted(HEART_KEYS.getOrDefault(level, 0))));
 

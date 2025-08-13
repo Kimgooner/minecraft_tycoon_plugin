@@ -84,7 +84,7 @@ public class MiningPassiveBuff implements Listener {
             resetTask_2.remove(uuid);
             player.sendMessage("§f[시스템] - §6연속적인 채광: 행운 §f패시브가 만료되었습니다...");
         }, 60L);
-        resetTask_1.put(uuid, resetTask);
+        resetTask_2.put(uuid, resetTask);
     }
 
     @EventHandler

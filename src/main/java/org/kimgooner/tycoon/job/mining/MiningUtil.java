@@ -6,26 +6,17 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.kimgooner.tycoon.db.dao.DataStorageDAO;
-import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -35,34 +26,17 @@ public class MiningUtil {
     private final DataStorageDAO dataStorageDAO;
     private final MiningStatManager miningStatManager;
 
-    private final Map<UUID, MiningStat> miningStatMap;
     private final Map<UUID, Boolean> chainBreaking;
     public MiningUtil(JavaPlugin plugin, MiningController miningController) {
         this.plugin = plugin;
         this.dataStorageDAO = miningController.getGlobalController().getGlobalDaoController().getDataStorageDAO();
         this.miningStatManager = miningController.getMiningStatManager();
 
-        this.miningStatMap = miningController.getMiningMap();
         this.chainBreaking = miningController.getChainBreakingMap();
     }
     // ---------------------------------------------------------------------------------------------------------------------------------------------- //
     // 속도 관련
     private final RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-    private final Map<String, Double> REGION_MAP_RESISTANCE = Map.of(
-            "mine1", -0.30,
-            "mine2", -0.50,
-            "mine3", -0.70,
-            "mine4", -0.90
-    );
-    private Double getRegionValue(Location loc) {
-        RegionManager regions = container.get(BukkitAdapter.adapt(loc.getWorld()));
-        ApplicableRegionSet regionSet = Objects.requireNonNull(regions).getApplicableRegions(BukkitAdapter.asBlockVector(loc));
-
-        for (ProtectedRegion region : regionSet) {
-            return REGION_MAP_RESISTANCE.get(region.getId());
-        }
-        return 0.0;
-    }
     public void applyMiningSpeedStat(Player player, int speedStat) {
         AttributeInstance attr = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
         if (attr == null) return;
@@ -76,14 +50,7 @@ public class MiningUtil {
                 AttributeModifier.Operation.ADD_SCALAR
         );
 
-        AttributeModifier multiplyModifier = new AttributeModifier(
-                NamespacedKey.minecraft("region_value"),
-                getRegionValue(player.getLocation()),
-                AttributeModifier.Operation.MULTIPLY_SCALAR_1
-        );
-
         attr.addModifier(modifier);
-        attr.addModifier(multiplyModifier);
     }
     public void removeMiningSpeedModifier(Player player) {
         AttributeInstance attr = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
@@ -145,11 +112,10 @@ public class MiningUtil {
     private final List<Integer> DUST_BASE = List.of(
             2, 4, 6, 10
     );
-    public boolean getDropItem(Player player, MiningStat playerMiningStat, Block targetBlock, Material material) {
+    public boolean getDropItem(Player player, MiningStat playerMiningStat, Material material) {
         if (!oreDropTable.containsKey(material)) {
             return false;
         }
-
         DropData dropData = oreDropTable.get(material);
 
         ItemStack dropItem = dropData.drop();
@@ -159,48 +125,46 @@ public class MiningUtil {
         int exp = dropData.exp();
         boolean isPristine = playerMiningStat.isPristine();
 
-        miningStatManager.calcExp(player, playerMiningStat, exp);
-        if(grade != 0) {
-            if (grade <= 4) miningStatManager.calcLowDust(player, playerMiningStat, DUST_BASE.get(grade-1));
-            else miningStatManager.calcHighDust(player, playerMiningStat, DUST_BASE.get(grade - 5));
-        }
-
         int[] result_amount = new int[2];
         result_amount[0] = (playerMiningStat.calcFortune() + 1) * base_amount;
         if(isPristine) result_amount[0] *= 3;
 
-        dataStorageDAO.addAmount(player, 1, target, result_amount[0]);
-//        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-//            int finalResult = result_amount[0];
-//            dataStorageDAO.addAmount(player, 1, target, finalResult);
-//        });
-
-        ItemMeta meta = dropItem.getItemMeta();
-        if (meta != null) {
-            Component display = Component.text(dropItem.getType().name().toLowerCase().replace("_", " ")).color(ItemGlowUtil.getDisplayColor(grade)).decoration(TextDecoration.ITALIC, false)
-                    .append(Component.text(" x" + result_amount[0]).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
-            if(isPristine){
-                display = Component.text("✧ 순수한 ").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false).append(display).append(Component.text("(+" + result_amount[0] * 2 + ")").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            miningStatManager.calcExp(player, playerMiningStat, exp);
+            if(grade != 0) {
+                if (grade <= 4) miningStatManager.calcLowDust(player, playerMiningStat, DUST_BASE.get(grade-1));
+                else miningStatManager.calcHighDust(player, playerMiningStat, DUST_BASE.get(grade - 5));
             }
-            display = display.append(Component.text(" By " + player.getName()).color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-            meta.displayName(display);
-            dropItem.setItemMeta(meta);
-        }
+            int finalResult = result_amount[0];
+            dataStorageDAO.addAmount(player, 1, target, finalResult);
+        });
 
-        Location dropLoc = targetBlock.getLocation().add(0.5, 0.5, 0.5);
-        Item itemEntity = targetBlock.getWorld().dropItem(dropLoc, dropItem);
-
-        itemEntity.setPickupDelay(Integer.MAX_VALUE);
-        itemEntity.customName(dropItem.displayName());
-        itemEntity.setCustomNameVisible(true);
-        ItemGlowUtil.applyGlowColor(itemEntity, grade);
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                itemEntity.remove();
-            }
-        }.runTaskLater(plugin, 30L);
+//        ItemMeta meta = dropItem.getItemMeta();
+//        if (meta != null) {
+//            Component display = Component.text(dropItem.getType().name().toLowerCase().replace("_", " ")).color(ItemGlowUtil.getDisplayColor(grade)).decoration(TextDecoration.ITALIC, false)
+//                    .append(Component.text(" x" + result_amount[0]).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
+//            if(isPristine){
+//                display = Component.text("✧ 순수한 ").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false).append(display).append(Component.text("(+" + result_amount[0] * 2 + ")").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+//            }
+//            display = display.append(Component.text(" By " + player.getName()).color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+//            meta.displayName(display);
+//            dropItem.setItemMeta(meta);
+//        }
+//
+//        Location dropLoc = targetBlock.getLocation().add(0.5, 0.5, 0.5);
+//        Item itemEntity = targetBlock.getWorld().dropItem(dropLoc, dropItem);
+//
+//        itemEntity.setPickupDelay(Integer.MAX_VALUE);
+//        itemEntity.customName(dropItem.displayName());
+//        itemEntity.setCustomNameVisible(true);
+//        ItemGlowUtil.applyGlowColor(itemEntity, grade);
+//
+//        new BukkitRunnable() {
+//            @Override
+//            public void run() {
+//                itemEntity.remove();
+//            }
+//        }.runTaskLater(plugin, 30L);
 
         return true;
     }
@@ -208,101 +172,56 @@ public class MiningUtil {
 
     // ---------------------------------------------------------------------------------------------------------------------------------------------- //
     // 광물 생성 관련
-    private static final Map<Integer, Map<Integer, Integer>> TIER_PROBABILITIES = Map.of(
-            1, Map.of( // Mine 1의 게이트 확률
-                    4, 5,
-                    3, 10,
-                    2, 25,
-                    1, 60
-            ),
-            2, Map.of( // Mine 2의 게이트 확률
-                    6, 3,
-                    5, 5,
-                    4, 7,
-                    3, 15,
-                    2, 25,
-                    1, 45
-            ),
-            3, Map.of( // Mine 3의 게이트 확률
-                    8, 2,
-                    7, 3,
-                    6, 5,
-                    5, 7,
-                    4, 10,
-                    3, 15,
-                    2, 25,
-                    1, 33
-            ),
-            4, Map.of( // Mine 4의 게이트 확률
-                    8, 5,
-                    7, 6,
-                    6, 8,
-                    5, 10,
-                    4, 15,
-                    3, 15,
-                    2, 20,
-                    1, 21
-            )
-    );
-    private final Map<Integer, Map<Integer, List<Material>>> RESULT_ORE = Map.of( // 생성 광물
-            0, Map.of(
-                    1, List.of(Material.STONE, Material.ANDESITE, Material.COBBLESTONE),
-                    2, List.of(Material.STONE, Material.STONE_BRICKS, Material.POLISHED_ANDESITE),
-                    3, List.of(Material.DEEPSLATE, Material.COBBLED_DEEPSLATE, Material.BASALT, Material.SMOOTH_BASALT),
-                    4, List.of(Material.DEEPSLATE_BRICKS, Material.DEEPSLATE_TILES, Material.CHISELED_DEEPSLATE, Material.CRACKED_DEEPSLATE_TILES)
-            ),
+    private final Map<Integer, Map<Integer, List<Material>>> RESULT_ORE_ORES = Map.of( // 생성 광물
             1, Map.of(
+                    0, List.of(Material.STONE, Material.ANDESITE, Material.COBBLESTONE),
                     1, List.of(Material.COAL_ORE, Material.COPPER_ORE),
-                    2, List.of(Material.IRON_ORE, Material.GOLD_ORE),
-                    3, List.of(Material.REDSTONE_ORE, Material.LAPIS_ORE),
-                    4, List.of(Material.EMERALD_ORE, Material.DIAMOND_ORE)
+                    2, List.of(Material.IRON_ORE, Material.GOLD_ORE)
             ),
             2, Map.of(
-                    1, List.of(Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_COPPER_ORE),
-                    2, List.of(Material.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_GOLD_ORE),
-                    3, List.of(Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE),
-                    4, List.of(Material.DEEPSLATE_EMERALD_ORE, Material.DEEPSLATE_DIAMOND_ORE),
-                    5, List.of(Material.PRISMARINE, Material.POLISHED_DIORITE),
-                    6, List.of(Material.AMETHYST_BLOCK, Material.LIGHT_BLUE_GLAZED_TERRACOTTA),
-                    7, List.of(Material.LIGHT_GRAY_GLAZED_TERRACOTTA, Material.GRAY_GLAZED_TERRACOTTA),
-                    8, List.of(Material.CYAN_GLAZED_TERRACOTTA, Material.BLUE_GLAZED_TERRACOTTA)
+                    0, List.of(Material.STONE, Material.STONE_BRICKS, Material.POLISHED_ANDESITE),
+                    1, List.of(Material.REDSTONE_ORE, Material.LAPIS_ORE),
+                    2, List.of(Material.EMERALD_ORE, Material.DIAMOND_ORE)
             ),
             3, Map.of(
-                    1, List.of(Material.COAL_BLOCK, Material.WAXED_COPPER_BLOCK),
-                    2, List.of(Material.IRON_BLOCK, Material.GOLD_BLOCK),
-                    3, List.of(Material.REDSTONE_BLOCK, Material.LAPIS_BLOCK),
-                    4, List.of(Material.EMERALD_BLOCK, Material.DIAMOND_BLOCK),
-                    5, List.of(Material.WAXED_OXIDIZED_COPPER, Material.QUARTZ_BLOCK),
-                    6, List.of(Material.PURPLE_STAINED_GLASS, Material.LIGHT_BLUE_STAINED_GLASS),
-                    7, List.of(Material.WHITE_STAINED_GLASS, Material.GRAY_STAINED_GLASS),
-                    8, List.of(Material.CYAN_STAINED_GLASS, Material.BLUE_STAINED_GLASS)
+                    0, List.of(Material.DEEPSLATE, Material.COBBLED_DEEPSLATE, Material.BASALT, Material.SMOOTH_BASALT),
+                    1, List.of(Material.PRISMARINE, Material.POLISHED_DIORITE),
+                    2, List.of(Material.AMETHYST_BLOCK, Material.LIGHT_BLUE_GLAZED_TERRACOTTA)
+            ),
+            4, Map.of(
+                    0, List.of(Material.DEEPSLATE_BRICKS, Material.DEEPSLATE_TILES, Material.CHISELED_DEEPSLATE, Material.CRACKED_DEEPSLATE_TILES),
+                    1, List.of(Material.LIGHT_GRAY_GLAZED_TERRACOTTA, Material.GRAY_GLAZED_TERRACOTTA),
+                    2, List.of(Material.CYAN_GLAZED_TERRACOTTA, Material.BLUE_GLAZED_TERRACOTTA)
             )
     );
-    private final Map<Integer, Integer> REGION_MAP_LIGHT = Map.of( // 광산별 최소 빛 수치
-            1, 0,
-            2, 500,
-            3,1000,
-            4,1500
+    private final Map<Integer, Map<Integer, List<Material>>> RESULT_ORE_BLOCKS = Map.of( // 생성 광물
+            1, Map.of(
+                    0, List.of(Material.STONE, Material.ANDESITE, Material.COBBLESTONE),
+                    1, List.of(Material.COAL_BLOCK, Material.WAXED_COPPER_BLOCK),
+                    2, List.of(Material.IRON_BLOCK, Material.GOLD_BLOCK)
+            ),
+            2, Map.of(
+                    0, List.of(Material.STONE, Material.STONE_BRICKS, Material.POLISHED_ANDESITE),
+                    1, List.of(Material.REDSTONE_BLOCK, Material.LAPIS_BLOCK),
+                    2, List.of(Material.EMERALD_BLOCK, Material.DIAMOND_BLOCK)
+            ),
+            3, Map.of(
+                    0, List.of(Material.DEEPSLATE, Material.COBBLED_DEEPSLATE, Material.BASALT, Material.SMOOTH_BASALT),
+                    1, List.of(Material.WAXED_OXIDIZED_COPPER, Material.QUARTZ_BLOCK),
+                    2, List.of(Material.PURPLE_STAINED_GLASS, Material.LIGHT_BLUE_STAINED_GLASS)
+            ),
+            4, Map.of(
+                    0, List.of(Material.DEEPSLATE_BRICKS, Material.DEEPSLATE_TILES, Material.CHISELED_DEEPSLATE, Material.CRACKED_DEEPSLATE_TILES),
+                    1, List.of(Material.WHITE_STAINED_GLASS, Material.GRAY_STAINED_GLASS),
+                    2, List.of(Material.CYAN_STAINED_GLASS, Material.BLUE_STAINED_GLASS)
+            )
     );
     public Material getRandomMaterial(List<Material> materials) {
         int index = ThreadLocalRandom.current().nextInt(materials.size());
         return materials.get(index);
     }
-    private Material getOreByGateSystem(Integer floor, Integer type, Integer light) { // 게이트 확률 지정
-        if(type == 0){
-            return getRandomMaterial(RESULT_ORE.get(type).get(floor));
-        }
-        else{
-            double modifier = 1 + (light - REGION_MAP_LIGHT.get(floor)) * 0.2 * 0.01;
-            for(int tier = TIER_PROBABILITIES.get(floor).size(); tier > 1; tier--){
-                double chance = (double) TIER_PROBABILITIES.get(floor).getOrDefault(tier, 0);
-                chance *= modifier; // modified value 값 들어갈 예정, 빛 관련 값
-                if(ThreadLocalRandom.current().nextInt(100) < chance){
-                    return getRandomMaterial(RESULT_ORE.get(type).get(tier));
-                }
-            }
-        }
-        return getRandomMaterial(RESULT_ORE.get(type).get(1));
+    private Material getOre(Map<Integer, Map<Integer, List<Material>>> map, int floor, int type) { // 게이트 확률 지정
+        return getRandomMaterial(map.get(floor).get(type));
     }
     private final Map<String, Integer> REGION_MAP = Map.of( // region 테이블
             "mine1", 1,
@@ -310,7 +229,7 @@ public class MiningUtil {
             "mine3", 3,
             "mine4", 4
     );
-    private Integer isInTargetRegion(Location loc) { // 공간 여부
+    public Integer isInTargetRegion(Location loc) { // 공간 여부
         RegionManager regions = container.get(BukkitAdapter.adapt(loc.getWorld()));
         ApplicableRegionSet regionSet = Objects.requireNonNull(regions).getApplicableRegions(BukkitAdapter.asBlockVector(loc));
 
@@ -319,25 +238,35 @@ public class MiningUtil {
         }
         return 0;
     }
+    public static int randomOneOrTwo() {
+        return ThreadLocalRandom.current().nextInt(1, 3);
+    }
     public void getRegenBlock(Player player, MiningStat playerMiningStat, Block block) {
         Location loc = block.getLocation();
-        Block targetBlock = loc.getBlock();
         int floor = isInTargetRegion(loc);
+        Block targetBlock = loc.getBlock();
         if(floor == 0){ return; }
         Bukkit.getScheduler().runTask(plugin, () -> targetBlock.setType(Material.BEDROCK));
 
-        int[] type = new int[2];
-        type[0] = 0;
-        if(playerMiningStat.oreFind()){
-            if(playerMiningStat.blockFind()){
-                type[0] = 3;
+        if(playerMiningStat.chestFind(floor)){
+            if(playerMiningStat.highChestFind()){
+                player.playSound(player.getLocation(), Sound.ITEM_MACE_SMASH_GROUND_HEAVY, 1, 1);
+                player.sendMessage("§f[시스템] - §bHIGH CHEST FOUND!!! §e상위 보물 상자§f를 발견했습니다!!");
             }
-            else{
-                type[0] = floor >= 3 ? 2 : 1;
+            else {
+                player.playSound(player.getLocation(), Sound.ITEM_MACE_SMASH_GROUND, 1, 1);
+                player.sendMessage("§f[시스템] - §eCHEST FOUND! §e보물 상자§f를 발견했습니다!!");
             }
         }
-        int finalType = type[0];
-        Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(getOreByGateSystem(floor, finalType, playerMiningStat.getLight())), 60L); // 3초 뒤 광물 변환
+        Map<Integer, Map<Integer, List<Material>>> currentMap = RESULT_ORE_ORES;
+        if (playerMiningStat.blockFind()) currentMap = RESULT_ORE_BLOCKS;
+
+        int type = randomOneOrTwo();
+        if(!playerMiningStat.oreFind()) type = 0;
+
+        int final_type = type;
+        Map<Integer, Map<Integer, List<Material>>> finalMap = currentMap;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(getOre(finalMap, floor, final_type)), 60L); // 3초 뒤 광물 변환
 
         if(chainBreaking.getOrDefault(player.getUniqueId(), false)) return;
         applyBlockSpread(player, block, playerMiningStat.calcSpread());
@@ -395,20 +324,19 @@ public class MiningUtil {
             @Override
             public void run() {
                 int processedThisTick = 0;
-
                 while (processedThisTick < BATCH_SIZE && count < maxCount && index < candidates.size()) {
                     Block target = candidates.get(index++);
                     if (isValidSpreadTarget(target)) {
                         Material material = target.getType();
                         target.setType(Material.AIR);
                         MiningStat miningStat = miningStatManager.getCachedStat(player);
-                        if(!getDropItem(player, miningStat, target, material)) return;
+                        boolean dropResult = getDropItem(player, miningStat, material);
                         getRegenBlock(player, miningStat, target);
                         count++;
+                        if (!dropResult) return;
                     }
                     processedThisTick++;
                 }
-
                 if (count >= maxCount || index >= candidates.size()) {
                     chainBreaking.remove(uuid);
                     this.cancel();

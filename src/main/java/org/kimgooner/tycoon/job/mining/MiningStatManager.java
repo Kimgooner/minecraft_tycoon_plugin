@@ -1,5 +1,12 @@
 package org.kimgooner.tycoon.job.mining;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -15,6 +22,7 @@ import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class MiningStatManager {
@@ -22,6 +30,7 @@ public class MiningStatManager {
     private final MiningDAO miningDAO;
     private final HeartDAO heartDAO;
     private final HeartInfoDAO heartInfoDAO;
+    private final RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
 
     private final Map<UUID, Integer> buff_1;
     private final Map<UUID, Integer> buff_2;
@@ -97,14 +106,36 @@ public class MiningStatManager {
         return new itemStat(totalPower, totalSpeed, totalFortune, totalSpread, totalPristine);
     }
 
+    private final Map<Integer, Integer> REGION_LIGHT = Map.of( // region 테이블
+            0, 0,
+            1, 0,
+            2, 500,
+            3, 1000,
+            4, 1500
+    );
+    private final Map<String, Integer> REGION_MAP = Map.of( // region 테이블
+            "mine1", 1,
+            "mine2", 2,
+            "mine3", 3,
+            "mine4", 4
+    );
+    public Integer isInTargetRegion(Location loc) { // 공간 여부
+        RegionManager regions = container.get(BukkitAdapter.adapt(loc.getWorld()));
+        ApplicableRegionSet regionSet = Objects.requireNonNull(regions).getApplicableRegions(BukkitAdapter.asBlockVector(loc));
+
+        for (ProtectedRegion region : regionSet) {
+            return REGION_MAP.get(region.getId());
+        }
+        return 0;
+    }
     private MiningStat calculateStat(Player player, Map<Integer,Integer> heartLevels, int level) {
         UUID uuid = player.getUniqueId();
         itemStat fromEquipment = getStatFromEquipment(player);
         int power = fromEquipment.power();
         int speed = fromEquipment.speed()
-                + heartLevels.getOrDefault(4, 0) * 20
+                + heartLevels.getOrDefault(1, 0) * 20
                 + heartLevels.getOrDefault(16, 0) * 5
-                + heartLevels.getOrDefault(25, 0) * 40
+                + heartLevels.getOrDefault(23, 0) * 40
                 + buff_1.getOrDefault(uuid, 0);
 
         int fortune = fromEquipment.fortune()
@@ -127,7 +158,7 @@ public class MiningStatManager {
 
         int dust = heartLevels.getOrDefault(24, 0);
 
-        int regen_time = 60 - heartLevels.getOrDefault(10, 0) * 2;
+        int regen_time = 60 - heartLevels.getOrDefault(10, 0);
 
         double wisdom = heartLevels.getOrDefault(14, 0) * 0.5;
         double find_ore = heartLevels.getOrDefault(14, 0) * 0.1 + heartLevels.getOrDefault(21, 0) * 0.1;
@@ -165,6 +196,12 @@ public class MiningStatManager {
                 .is_umbralOre(heartDAO.getLevel(player, 28) != 0)                 // 움브랄나이트 탐사
                 .is_riftOre(heartDAO.getLevel(player, 12) != 0)                   // 균열 광물 탐사
                 .build();
+
+        Location loc = player.getLocation();
+        int floor = isInTargetRegion(loc);
+        int bonus_fortune = (miningStat.getLight() - REGION_LIGHT.get(floor)) / 100;
+        if(bonus_fortune > 5) bonus_fortune = 5;
+        miningStat.bonusMul(bonus_fortune);
         return miningStat;
     }
 
@@ -191,7 +228,8 @@ public class MiningStatManager {
 
     public void calcExp(Player player, MiningStat miningStat, int exp) {
         double resultExp = miningStat.calcExp(exp);
-        miningDAO.addExp(player, resultExp);
+        miningDAO.addExpOnly(player, resultExp);
+        miningDAO.processLevelUpIfNeeded(player);
     }
 
     public void calcLowDust(Player player, MiningStat miningStat, int base) {

@@ -1,6 +1,7 @@
 package org.kimgooner.tycoon.job.mining;
 
 import lombok.Getter;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.kimgooner.tycoon.GlobalController;
@@ -46,4 +47,15 @@ public class MiningController {
     }
 
     public Map<UUID, MiningStat> getMiningMap() {return globalController.getMiningOverallMap();}
+    public MiningStat getMiningStat(Player player) {
+        UUID uuid = player.getUniqueId();
+        Map<UUID, MiningStat> miningMap =  getMiningMap();
+        MiningStat miningStat = miningMap.get(uuid);
+
+        if(miningStat == null) {
+            miningStat = miningStatManager.getCachedStat(player);
+            miningMap.put(uuid, miningStat);
+        }
+        return miningStat;
+    }
 }

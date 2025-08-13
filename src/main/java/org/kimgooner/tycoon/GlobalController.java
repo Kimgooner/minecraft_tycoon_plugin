@@ -31,10 +31,11 @@ public class GlobalController {
 //    private final Map<UUID, MiningOverall> combatOverallMap = new HashMap<>();
     public GlobalController(JavaPlugin plugin, DatabaseManager databaseManager) {
         this.globalDaoController = new GlobalDAOController(databaseManager, plugin);
-        this.globalGuiController = new GlobalGUIController(plugin, this);
+        this.miningController = new MiningController(plugin, this);
+        this.globalGuiController = new GlobalGUIController(plugin, globalDaoController, miningController, this);
         this.globalWarpController = new GlobalWarpController(plugin, globalGuiController);
         this.globalNPCController = new GlobalNPCController(plugin, globalGuiController);
-        this.miningController = new MiningController(plugin, this);
+
 
         //이벤트 핸들러
         plugin.getServer().getPluginManager().registerEvents(new GlobalEventHandler(plugin, this), plugin);

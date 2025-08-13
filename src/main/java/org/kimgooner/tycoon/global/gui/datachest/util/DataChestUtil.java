@@ -6,7 +6,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.inventory.ItemStack;
 import org.kimgooner.tycoon.global.item.global.ItemBuilder;
-import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
 
 import java.util.List;
 
@@ -18,16 +17,15 @@ public class DataChestUtil {
              37, 38, 39, 40, 41, 42, 43
     };
 
-    public static void populateItems(ChestGui gui, List<ItemStack> items, List<Integer> grades, List<String> names, List<Integer> amounts) {
+    public static void populateItems(ChestGui gui, List<ItemStack> items, List<String> names, List<Integer> amounts) {
         for(int i = 0; i < items.size(); i++) {
             ItemStack item = items.get(i);
-            Integer grade = grades.get(i);
             String name = names.get(i);
             Integer amount = amounts.get(i);
 
             ItemStack element = new ItemBuilder(item)
                     .displayName(
-                            Component.text(name).color(ItemGlowUtil.getDisplayColor(grade)).decoration(TextDecoration.ITALIC, false)
+                            Component.text(name).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
                     )
                     .addLore(
                             Component.text("데이터 보유량: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)

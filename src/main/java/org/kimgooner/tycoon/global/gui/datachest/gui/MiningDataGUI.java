@@ -34,10 +34,6 @@ public class MiningDataGUI {
             new ItemStack(Material.DIAMOND)
     );
 
-    List<Integer> gradeList = List.of(
-            0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8
-    );
-
     List<String> itemNameList = List.of(
             "돌",
             "석탄",
@@ -77,7 +73,7 @@ public class MiningDataGUI {
                 miningDataStorages.get(8).getAmount()
         );
         playerGUI.show(player);
-        DataChestUtil.populateItems(playerGUI, itemList, gradeList, itemNameList, amountList);
+        DataChestUtil.populateItems(playerGUI, itemList, itemNameList, amountList);
     }
 
     public void toDataChest(InventoryClickEvent event) {

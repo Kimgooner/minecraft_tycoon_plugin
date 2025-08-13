@@ -1,6 +1,7 @@
 package org.kimgooner.tycoon.db.dao.job.mining;
 
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -122,9 +123,10 @@ public class MiningDAO {
             conn.setAutoCommit(true);
 
             Integer cur = getLevel(player);
-            DiscordWebhookLevelUpEvent event = new DiscordWebhookLevelUpEvent(player, LevelUpType.MINING, cur);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                Bukkit.getPluginManager().callEvent(new DiscordWebhookLevelUpEvent(player, LevelUpType.MINING, cur));
+            });
             sendMiningLevelUpMessage(player, cur);
-            plugin.getServer().getPluginManager().callEvent(event);
 
             if (cur % 5 == 0 && cur != 0 && cur <= 45) {
                 globalDAOController.getHeartInfoDAO().addLevel(player);
@@ -151,6 +153,62 @@ public class MiningDAO {
             conn.setAutoCommit(true);
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void addExpOnly(Player player, Double value) {
+        try (Connection conn = databaseManager.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement("UPDATE minings SET exp = exp + ? WHERE member_uuid = ?")) {
+                ps.setDouble(1, value);
+                ps.setString(2, player.getUniqueId().toString());
+                ps.executeUpdate();
+            }
+            conn.commit();
+            conn.setAutoCommit(true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void processLevelUpIfNeeded(Player player) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            try (Connection conn = databaseManager.getConnection()) {
+                while (true) {
+                    int level = getLevel(player);
+                    double exp = getExp(player);
+
+                    double requiredExp = util.EXP_LISTS.get(level);
+                    if (exp < requiredExp) break;
+
+                    // 경험치 차감
+                    setExp(player, exp - requiredExp);
+
+                    // 레벨업
+                    addLevelSync(player);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void addLevelSync(Player player) {
+        String sql = "UPDATE minings SET level = level + 1 WHERE member_uuid = ?";
+        try (Connection conn = databaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, player.getUniqueId().toString());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        Integer cur = getLevel(player);
+        Bukkit.getPluginManager().callEvent(new DiscordWebhookLevelUpEvent(player, LevelUpType.MINING, cur));
+        sendMiningLevelUpMessage(player, cur);
+
+        if (cur % 5 == 0 && cur != 0 && cur <= 45) {
+            globalDAOController.getHeartInfoDAO().addLevel(player);
         }
     }
 }

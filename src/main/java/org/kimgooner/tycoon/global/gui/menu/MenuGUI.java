@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.GlobalDAOController;
 import org.kimgooner.tycoon.db.dao.MemberDAO;
 import org.kimgooner.tycoon.db.dao.job.combat.CombatDAO;
@@ -16,6 +15,7 @@ import org.kimgooner.tycoon.db.dao.job.fishing.FishingDAO;
 import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.item.global.ItemBuilder;
+import org.kimgooner.tycoon.job.mining.MiningController;
 import org.kimgooner.tycoon.job.mining.MiningStat;
 
 import java.io.InputStream;
@@ -33,8 +33,10 @@ public class MenuGUI {
     private final FishingDAO fishingDAO;
     private final CombatDAO combatDAO;
 
+    private final MiningController miningController;
     private final Map<UUID, MiningStat> miningStatMap;
-    public MenuGUI(JavaPlugin plugin, GlobalGUIController globalGUIController, GlobalDAOController globalDAOController, GlobalController globalController) {
+
+    public MenuGUI(JavaPlugin plugin, GlobalGUIController globalGUIController, GlobalDAOController globalDAOController, MiningController miningController) {
         this.globalGUIController = globalGUIController;
 
 
@@ -44,7 +46,8 @@ public class MenuGUI {
         this.fishingDAO = globalDAOController.getFishingDAO();
         this.combatDAO = globalDAOController.getCombatDAO();
 
-        this.miningStatMap = globalController.getMiningOverallMap();
+        this.miningController = miningController;
+        this.miningStatMap = miningController.getMiningMap();
         InputStream xmlStream = plugin.getResource("gui/menu/menu.xml");
         if (xmlStream == null) {
             throw new IllegalStateException("리소스를 찾을 수 없습니다.");
@@ -64,7 +67,8 @@ public class MenuGUI {
 
     public void open(Player player) {
         ChestGui playerMenu = menuGUI.copy();
-        MiningStat miningStat = miningStatMap.get(player.getUniqueId());
+
+        MiningStat miningOverall = miningController.getMiningStat(player);
         int miningLevel = miningDAO.getLevel(player);
         double miningExp = miningDAO.getExp(player);;
 
@@ -83,11 +87,11 @@ public class MenuGUI {
                 .addLore(Component.text(" §7레벨 보너스:"))
                 .addLore(Component.text(String.format("  §f채광 속도: §6+%,d ☘", miningLevel * 4)))
                 .addLore(Component.text("§7스텟:"))
-                .addLore(Component.text(String.format(" §f채광 속도: §6%,d ⸕", miningStat.getSpeed())))
-                .addLore(Component.text(String.format(" §f채광 행운: §6%,d ☘", miningStat.getFortune())))
-                .addLore(Component.text(String.format(" §f연쇄 파괴: §e%,d ▚", miningStat.getSpread())))
-                .addLore(Component.text(String.format(" §f순수: §5%.1f ✧", miningStat.getPristine())))
-                .addLore(Component.text(String.format(" §f빛: §e%,d ✦", miningStat.getLight())))
+                .addLore(Component.text(String.format(" §f채광 속도: §6%,d ⸕", miningOverall.getSpeed())))
+                .addLore(Component.text(String.format(" §f채광 행운: §6%,d ☘", miningOverall.getFortune())))
+                .addLore(Component.text(String.format(" §f연쇄 파괴: §e%,d ▚", miningOverall.getSpread())))
+                .addLore(Component.text(String.format(" §f순수: §5%.1f ✧", miningOverall.getPristine())))
+                .addLore(Component.text(String.format(" §f빛: §e%,d ✦", miningOverall.getLight())))
                 .build();
         ItemStack statFarming = new ItemBuilder(Material.DIAMOND_HOE)
                 .hideAttributeModifiers()

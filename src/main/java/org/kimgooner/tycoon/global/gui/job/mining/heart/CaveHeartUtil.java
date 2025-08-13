@@ -235,6 +235,70 @@ public class CaveHeartUtil {
             Map.entry(17, new upgradeDate(5, (x) -> 0, 2,1))// 100
     );
 
+    public final Map<Integer, Function<Integer, List<String>>> STAT_DESCRIPTION_MAX = Map.ofEntries(
+            // 1
+            Map.entry(1, (level) -> List.of("§6채광 속도 ⸕ §f: " + "§a+%d".formatted((level)*20))),
+
+            // 2
+            Map.entry(2, (level) -> List.of("§f블럭을 캘 때마다 §6채광 행운 ☘§f가 §a1§f씩 증가합니다 (최대 §a50§f)",
+                    "§f3초 이내에 블럭을 캐지 않을 경우 초기화됩니다.")),
+            Map.entry(3, (level) -> List.of("§7광물 §f발견 확률 §f: " + "§a+%d%% §f증가".formatted(level),
+                    "§8광산에서 광물 재생 시",
+                    "§8광물이 등장할 확률을 증가시킵니다. (기본 50%)"
+            )),
+            Map.entry(4, (level) -> List.of("§6채광 행운 ☘ §f: " + "§a+%d".formatted((level)*2))),
+            Map.entry(5, (level) -> List.of("§7풍부한 광물 §f발견 확률 §f: " + "§a%d%% §f증가".formatted(level),
+                    "§8광산에서 광물 재생의 결과로 광물이 등장했을 때,",
+                    "§8풍부한 광물이 등장할 확률을 증가시킵니다. (기본 20%)"
+            )),
+            Map.entry(6, (level) -> List.of("§f블럭을 캘 때마다 §6채광 속도 ⸕§f가 §a1§f씩 증가합니다 (최대 §a200§f)",
+                    "§f3초 이내에 블럭을 캐지 않을 경우 초기화됩니다.")),
+
+            // 3
+            Map.entry(7, (level) -> List.of("§e보물 상자 §f발견 확률 §f: " + "§a%d%% §f증가".formatted(level),
+                    "§8광산에서 광물을 캘 때",
+                    "§8보물 상자를 획득할 확률을 증가시킵니다.",
+                    " ",
+                    "§8기본 등장 확률:",
+                    "§8버려진 채석장 - 0.14%",
+                    "§8깊은 동굴 - 0.18%",
+                    "§8미탐사 구역 - 0.2%",
+                    "§8종착점 - 0.27%"
+            )),
+            Map.entry(8, (level) -> List.of("§e연쇄 파괴 ▚ §f: " + "§a+%d".formatted((level)*2))),
+            Map.entry(9, (level) -> List.of("§e상위 보물 상자 §f발견 확률 §f: " + "§a+%d%% §f증가".formatted(level),
+                    "§8광산에서 보물 상자를 획득할 때",
+                    "§8상위 보물 상자를 획득할 확률을 증가시킵니다. (기본 20%)"
+            )),
+
+            //4
+            Map.entry(10, (level) -> List.of("§7광물 재생 속도 §f감소 §f: " + "§a-%.2f초".formatted(level*(0.05)),
+                    "§8광산에서 채광된 블럭(베드락)이",
+                    "§8다시 돌이나 광물로 돌아오는 시간을 감소시킵니다. (기본 3초)"
+            )),
+            Map.entry(11, (level) -> List.of("§e빛 ✦ §f: " + "§a+%d".formatted((level)*10))),
+            Map.entry(12, (level) -> List.of("§5균열 광물§f을 발견할 수 있게 됩니다.",
+                    "§8균열 광물은 채굴 시 다량의 광석의 가루를 획득할 수 있습니다.",
+                    "§8하위 균열 광물과 상위 균열 광물로 나뉘며, 각각 해당하는",
+                    "§8광석의 가루를 획득 가능합니다.",
+                    "",
+                    "§8균열 광물 발견 확률 - 광물 발견 시 1%",
+                    "§8하위 균열 광물 - 균열 광물 발견 시 60%",
+                    "§8상위 균열 광물 - 균열 광물 발견 시 40%"
+            )),
+            Map.entry(13, (level) -> List.of("§5순수 ✧ §f: " + "§a+%d".formatted((level)))),
+            Map.entry(14, (level) -> List.of("§3채광 숙련 §f: " + "§a+%.1f".formatted(level*(0.5)))),
+
+            //5
+            Map.entry(15, (level) -> List.of("§b채광 이벤트§f가 진행 중인 경우,",
+                    "§6채광 속도 ⸕§f가 §a500 §f증가합니다.")),
+            Map.entry(16, (level) -> List.of("§6채광 속도 ⸕ §f: " + "§a+%d".formatted((level)*5),
+                    "§6채광 행운 ☘ §f: " + "§a+%d ".formatted((level))
+            )),
+            Map.entry(17, (level) -> List.of("§b채광 이벤트§f가 진행 중인 경우,",
+                    "§6채광 행운 ☘§f이 §a100 §f증가합니다."))
+    );
+
     public final Map<Integer, Function<Integer, List<String>>> STAT_DESCRIPTION = Map.ofEntries(
             // 1
             Map.entry(1, (level) -> List.of("§6채광 속도 ⸕ §f: " + "§a+%d §f-> §8+%d".formatted((level)*20, (level+1)*20))),
@@ -272,7 +336,7 @@ public class CaveHeartUtil {
             )),
 
             //4
-            Map.entry(10, (level) -> List.of("§7광물 재생 속도 §f감소 §f: " + "§a-%.1f초 §f-> §8-%.1f초".formatted(level*(0.05), (level+1)*(0.05)),
+            Map.entry(10, (level) -> List.of("§7광물 재생 속도 §f감소 §f: " + "§a-%.1f초 §f-> §8-%.2f초".formatted(level*(0.05), (level+1)*(0.05)),
                     "§8광산에서 채광된 블럭(베드락)이",
                     "§8다시 돌이나 광물로 돌아오는 시간을 감소시킵니다. (기본 3초)"
             )),
