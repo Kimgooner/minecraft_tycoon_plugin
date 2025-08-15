@@ -10,8 +10,8 @@ import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.gui.menu.MenuEventHandler;
 import org.kimgooner.tycoon.global.npc.GlobalNPCController;
 import org.kimgooner.tycoon.global.warp.GlobalWarpController;
-import org.kimgooner.tycoon.job.mining.MiningController;
-import org.kimgooner.tycoon.job.mining.MiningStat;
+import org.kimgooner.tycoon.job.mining.controller.MiningController;
+import org.kimgooner.tycoon.job.mining.model.MiningStat;
 
 import java.util.*;
 
@@ -31,7 +31,7 @@ public class GlobalController {
 //    private final Map<UUID, MiningOverall> combatOverallMap = new HashMap<>();
     public GlobalController(JavaPlugin plugin, DatabaseManager databaseManager) {
         this.globalDaoController = new GlobalDAOController(databaseManager, plugin);
-        this.miningController = new MiningController(plugin, this);
+        this.miningController = new MiningController(plugin,this);
         this.globalGuiController = new GlobalGUIController(plugin, globalDaoController, miningController, this);
         this.globalWarpController = new GlobalWarpController(plugin, globalGuiController);
         this.globalNPCController = new GlobalNPCController(plugin, globalGuiController);

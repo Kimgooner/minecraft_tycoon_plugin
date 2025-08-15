@@ -1,46 +1,48 @@
-package org.kimgooner.tycoon.job.mining;
+package org.kimgooner.tycoon.job.mining.service;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class MiningPassiveBuff implements Listener {
-    private final int MAX_SPEED = 200;
-    private final int MAX_FORTUNE = 50;
+public class MiningBuffService {
+    private final JavaPlugin plugin;
 
     // 연속 : 속도
+//    private final int MAX_SPEED = 200;
+//    private final Map<UUID, Integer> buffMap_1;
+//    private final Map<UUID, BukkitTask> resetTask_1;
+//
+//    // 연속 : 행운
+//    private final int MAX_FORTUNE = 50;
+//    private final Map<UUID, Integer> buffMap_2;
+//    private final Map<UUID, BukkitTask> resetTask_2;
+
+    private final int MAX_SPEED = 200;
+    private final int MAX_FORTUNE = 50;
     private final Map<UUID, Integer> buffMap_1;
-    private final Map<UUID, BukkitTask> resetTask_1;
-
-    // 연속 : 행운
     private final Map<UUID, Integer> buffMap_2;
-    private final Map<UUID, BukkitTask> resetTask_2;
+    private final Map<UUID, BukkitTask> resetTask_1= new HashMap<>();
+    private final Map<UUID, BukkitTask> resetTask_2 = new HashMap<>();
 
-    private final JavaPlugin plugin;
-    private final MiningStatManager miningStatManager;
-
-    public MiningPassiveBuff(JavaPlugin plugin, MiningController miningController) {
+    public MiningBuffService(JavaPlugin plugin,
+                             Map<UUID, Integer> buffMap_1, Map<UUID, Integer> buffMap_2
+    ) {
         this.plugin = plugin;
-        this.miningStatManager = miningController.getMiningStatManager();
 
-        this.buffMap_1 = miningController.getBuffMap_1();
-        this.buffMap_2 = miningController.getBuffMap_2();
-        this.resetTask_1 = miningController.getResetTask_1();
-        this.resetTask_2 = miningController.getResetTask_2();
+
+        this.buffMap_1 = buffMap_1;
+        this.buffMap_2 = buffMap_2;
     }
 
-    public void consecutiveSpeed(Player player) {
+    public void consecutiveSpeed(Player player, boolean isConsecutive) {
         UUID uuid = player.getUniqueId();
 
-        MiningStat miningStat = miningStatManager.getCachedStat(player);
-        if(!miningStat.consecutiveSpeed()) {return;}
+        if(!isConsecutive) {return;}
 
         int currentSpeed = buffMap_1.getOrDefault(uuid, 0);
         if(currentSpeed == 0) {player.sendMessage("§f[시스템] - §6연속적인 채광: 속도 §f패시브가 발동되었습니다!");}
@@ -61,16 +63,15 @@ public class MiningPassiveBuff implements Listener {
         resetTask_1.put(uuid, resetTask);
     }
 
-    public void consecutiveFortune(Player player) {
+    public void consecutiveFortune(Player player, boolean isConsecutive) {
         UUID uuid = player.getUniqueId();
 
-        MiningStat miningStat = miningStatManager.getCachedStat(player);
-        if (!miningStat.consecutiveFortune()) {
+        if (!isConsecutive) {
             return;
         }
 
         int currentFortune = buffMap_2.getOrDefault(uuid, 0);
-        if(currentFortune == 0) {player.sendMessage("§f[시스템] - §6연속적인 채광: 행운 §f패시브가 발동되었습니다!");}
+        if(currentFortune == 0) {player.sendMessage("§f[시스템] - §6연속적인 채광: 행운 §f패시브가 발동되었습니다rmse!");}
         if(currentFortune < MAX_FORTUNE) {
             buffMap_2.put(uuid, currentFortune + 1);
         }
@@ -86,13 +87,5 @@ public class MiningPassiveBuff implements Listener {
         }, 60L);
         resetTask_2.put(uuid, resetTask);
     }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        UUID uuid = event.getPlayer().getUniqueId();
-        buffMap_1.remove(uuid);
-        buffMap_2.remove(uuid);
-        resetTask_1.remove(uuid);
-        resetTask_2.remove(uuid);
-    }
 }
+

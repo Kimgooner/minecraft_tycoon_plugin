@@ -14,8 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.GlobalDAOController;
 import org.kimgooner.tycoon.global.gui.menu.MenuItemUtil;
-import org.kimgooner.tycoon.job.mining.MiningStat;
-import org.kimgooner.tycoon.job.mining.MiningStatManager;
+import org.kimgooner.tycoon.job.mining.model.MiningStat;
 
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +27,6 @@ public class GlobalEventHandler implements Listener {
 
     private final Set<UUID> initializedPlayers;
     private final Map<UUID, MiningStat> miningStatMap;
-    private final MiningStatManager miningStatManager;
 
     public GlobalEventHandler(JavaPlugin plugin, GlobalController globalController) {
         this.plugin = plugin;
@@ -37,7 +35,6 @@ public class GlobalEventHandler implements Listener {
 
         this.initializedPlayers = globalController.getInitializedPlayers();
         this.miningStatMap = globalController.getMiningOverallMap();
-        this.miningStatManager = globalController.getMiningController().getMiningStatManager();
     }
 
     @EventHandler
@@ -60,7 +57,6 @@ public class GlobalEventHandler implements Listener {
             globalDAOController.getMemberDAO().init(player);
             plugin.getLogger().info(player.getName() + "의 멤버 DB 생성");
         }
-
         // 채광
         if(!globalDAOController.getMiningDAO().hasData(player)) {
             globalDAOController.getMiningDAO().init(player);
@@ -105,10 +101,7 @@ public class GlobalEventHandler implements Listener {
     }
 
     public void initStatManager(Player player){
-        if(!miningStatMap.containsKey(player.getUniqueId())) {
-            miningStatMap.put(player.getUniqueId(), miningStatManager.getCachedStat(player));
-            plugin.getLogger().info(player.getName() + "의 초기 채광 스텟 세팅 생성.");
-        }
+
     }
 
     @EventHandler

@@ -7,8 +7,12 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kimgooner.tycoon.GlobalController;
+import org.kimgooner.tycoon.db.dao.job.mining.HeartDAO;
+import org.kimgooner.tycoon.db.dao.job.mining.HeartInfoDAO;
 import org.kimgooner.tycoon.global.global.SoundUtil;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.item.global.ItemBuilder;
@@ -16,100 +20,102 @@ import org.kimgooner.tycoon.global.item.global.ItemGlowUtil;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class CaveHeartUpGUI {
-    private final JavaPlugin plugin;
     private final GlobalGUIController globalGuiController;
-    private final SoundUtil soundUtil = new SoundUtil();
+    private final HeartDAO heartDAO;
+    private final HeartInfoDAO heartInfoDAO;
+    private final CaveHeartUtil util;
+    private final SoundUtil soundUtil =  new SoundUtil();
 
-    private ChestGui caveHeartUpGUI;
+    private ChestGui caveHeartGUI;
 
-    public CaveHeartUpGUI(JavaPlugin plugin, GlobalGUIController globalGUIController) {
-        this.plugin = plugin;
+    public CaveHeartUpGUI(JavaPlugin plugin, GlobalGUIController globalGUIController, GlobalController globalController) {
         this.globalGuiController = globalGUIController;
+
+        this.heartDAO = globalController.getGlobalDaoController().getHeartDAO();
+        this.heartInfoDAO = globalController.getGlobalDaoController().getHeartInfoDAO();
+        this.util = new CaveHeartUtil(heartDAO, plugin);
 
         InputStream xmlStream = plugin.getResource("gui/npc/mining-caveheart-2.xml");
         if (xmlStream == null) {
             throw new IllegalStateException("리소스를 찾을 수 없습니다.");
         }
-        caveHeartUpGUI = ChestGui.load(this, xmlStream);
-        caveHeartUpGUI.setOnGlobalClick(event -> event.setCancelled(true));
+        caveHeartGUI = ChestGui.load(this, xmlStream);
+        caveHeartGUI.setOnGlobalClick(event -> event.setCancelled(true));
     }
 
-    private final List<Integer> TIER_SLOTS = List.of(
-            36, 27, 18, 9, 0
-    );
+    public void reloadSlot(Inventory gui, Player player) {
+        Map<Integer, Integer> heartLevels = heartDAO.getAllLevels(player);
+        for(int i = 15; i <= util.STATS_LOCATIONS_UP.size() + 15; i++) {
+            ItemStack baseItem = new ItemStack(Material.COAL);
+            Integer level = heartLevels.get(i);
+            if(!Objects.equals(level, util.STAT_DATA.get(i).cap())) {
+                if(level > 0) baseItem = new ItemStack(Material.EMERALD, level);
+                List<String> moreLore = util.STAT_DESCRIPTION.get(i).apply(level);
+                ItemBuilder builder = new ItemBuilder(baseItem)
+                        .displayName(Component.text(util.STAT_NAMES.get(i)).color(util.getColor(level)).decoration(TextDecoration.ITALIC, false))
+                        .addLore(Component.text("§f레벨: %d/§8%d".formatted(level, util.STAT_DATA.get(i).cap())))
+                        .addLore(Component.text(""))
+                        .addLore(Component.text("§f효과:"));
 
-    private final List<Integer> TOKEN_COUNTS = List.of(
-            2, 2, 3, 3, 3
-    );
+                for (String s : moreLore) {
+                    builder.addLore(Component.text(s));
+                }
 
-    private final List<Integer> STAT_LOCATIONS = List.of(
-            38, 40, 42,
-            29, 30, 31, 32, 33,
-            20, 22, 24,
-            11, 12, 13, 14, 15,
-            2, 4, 6
-    );
+                ItemStack stat = builder
+                        .addLore(Component.text(" "))
+                        .addLore(Component.text("§f비용:"))
+                        .addLore(Component.text(util.getCost(i, level)))
+                        .build();
 
-    private final List<String> STAT_NAMES = List.of(
-            "채광 이벤트 보너스: 속도", "동굴의 심장 코어", "채광 이벤트 보너스: 행운",
-            "하위 광석의 가루 기본 값 증가", "풍부한 광물 탐사 확률 증가 II", "연쇄 파괴 증가 II", "광물 탐사 확률 증가 II", "상위 광석의 가루 기본 값 증가",
-            "채광 속도 II", "가루 획득량 증가", "채광 행운 II",
-            "채광 이벤트 보너스: 상자", "순수 증가 II", "움브랄나이트 탐사", "행운 증가 II", "채광 이벤트 보너스: 가루",
-            "광석 변이", "모든 채광 확률 배율", "동굴의 축복"
-    );
+                gui.setItem(util.STATS_LOCATIONS.get(i), stat);
+            }
+            else{
+                baseItem = new ItemStack(Material.EMERALD_BLOCK, level);
+                List<String> moreLore = util.STAT_DESCRIPTION_MAX.get(i).apply(level);
+                ItemBuilder builder = new ItemBuilder(baseItem)
+                        .displayName(Component.text(util.STAT_NAMES.get(i)).color(util.getColor(level)).decoration(TextDecoration.ITALIC, false))
+                        .addLore(Component.text("§f레벨: %d/§8%d".formatted(level, util.STAT_DATA.get(i).cap())))
+                        .addLore(Component.text(""))
+                        .addLore(Component.text("§f효과:"));
 
-    public Material getItem(Integer level, Integer raw_cap) {
-        Integer cap = raw_cap + 6;
-        if (level >= cap) return Material.GREEN_STAINED_GLASS_PANE;
-        else if (level == cap-1) return Material.YELLOW_STAINED_GLASS_PANE;
-        else return Material.RED_STAINED_GLASS_PANE;
-    }
+                for (String s : moreLore) {
+                    builder.addLore(Component.text(s));
+                }
 
-    public String getString(Integer level, Integer cap) {
-        if (level >= cap) return "도달한 레벨입니다.";
-        else return "아직 도달하지 못한 레벨입니다.";
-    }
+                ItemStack stat = builder
+                        .addLore(Component.text(" "))
+                        .addLore(Component.text("§f비용:"))
+                        .addLore(Component.text("§a최대 레벨입니다!"))
+                        .build();
 
-    public String getLevel(Integer level) {
-        return switch (level) {
-            case 1 -> "V";
-            case 2 -> "VI";
-            case 3 -> "VII";
-            case 4 -> "VIII";
-            case 5 -> "IX";
-            default -> "";
-        };
-    }
-
-    public String getToken(Integer level) {
-        return " +" + TOKEN_COUNTS.get(level-1) + " 심장 해방의 열쇠";
+                gui.setItem(util.STATS_LOCATIONS.get(i), stat);
+            }
+        }
     }
 
     public void open(Player player) {
-        Integer caveLevel = 3;
-        ChestGui caveGUI = caveHeartUpGUI.copy();
+        Integer caveLevel = heartInfoDAO.getLevel(player);
+        ChestGui caveGUI = caveHeartGUI.copy();
         caveGUI.show(player);
-
-        for(int i = 0; i < STAT_LOCATIONS.size(); i++) {
-            ItemStack stat = new ItemBuilder(Material.COAL)
-                    .displayName(Component.text(STAT_NAMES.get(i)).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
-                    .build();
-
-            caveGUI.getInventory().setItem(STAT_LOCATIONS.get(i), stat);
-        }
 
         ItemStack core = new ItemBuilder(Material.GILDED_BLACKSTONE)
                 .displayName(Component.text(player.getName() + "의 동굴의 심장").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
                 .addLore(Component.text("강력한 힘이 깃든 동굴의 심장입니다.").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false))
                 .addLore(Component.text(""))
-                .addLore(Component.text("현재 레벨: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
+                .addLore(Component.text("현재 레벨: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(heartInfoDAO.getLevel(player)).color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)))
                 .addLore(Component.text(""))
                 .addLore(Component.text("보유 중인 자원: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
-                .addLore(Component.text(" 해방의 열쇠: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
-                .addLore(Component.text(" 하위 광석의 가루: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
-                .addLore(Component.text(" 상위 광석의 가루: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
+                .addLore(Component.text(" 해방의 열쇠: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%,d", heartInfoDAO.getHeartKey(player))).color(NamedTextColor.DARK_PURPLE).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text(" 하위 광석의 가루: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%,d", heartInfoDAO.getLowPowder(player))).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text(" 상위 광석의 가루: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%,d", heartInfoDAO.getHighPowder(player))).color(NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false)))
                 .build();
 
         caveGUI.getInventory().setItem(49, core);
@@ -120,9 +126,12 @@ public class CaveHeartUpGUI {
                 .addLore(Component.text("모두 돌려 받습니다.").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false))
                 .addLore(Component.text(" "))
                 .addLore(Component.text("아래 자원을 돌려 받습니다:").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false))
-                .addLore(Component.text(" 해방의 열쇠: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
-                .addLore(Component.text(" 하위 광석의 가루: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
-                .addLore(Component.text(" 상위 광석의 가루: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
+                .addLore(Component.text(" 해방의 열쇠: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%,d", heartInfoDAO.getUsedHeartKey(player))).color(NamedTextColor.DARK_PURPLE).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text(" 하위 광석의 가루: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%,d", heartInfoDAO.getUsedLowPowder(player))).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false)))
+                .addLore(Component.text(" 상위 광석의 가루: ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text(String.format("%,d", heartInfoDAO.getUsedHighPowder(player))).color(NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false)))
                 .addLore(Component.text(" "))
                 .addLore(Component.text("클릭하여 리셋!").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false))
                 .build();
@@ -130,18 +139,20 @@ public class CaveHeartUpGUI {
         caveGUI.getInventory().setItem(51, reset_button);
 
         for(int i = 1; i <= 5; i++) {
-            ItemStack tier = new ItemBuilder(getItem(caveLevel, i))
+            ItemStack tier = new ItemBuilder(util.getItem(caveLevel, i))
                     .hideAttributeModifiers()
                     .displayName(Component.text("동굴의 심장 ").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
-                            .append(Component.text(getLevel(i)).color(ItemGlowUtil.getDisplayColor(i+3)).decoration(TextDecoration.ITALIC, false))
+                            .append(Component.text(util.getLevel(i)).color(ItemGlowUtil.getDisplayColor(i-1)).decoration(TextDecoration.ITALIC, false))
                     )
-                    .addLore(Component.text(getToken(i)).color(NamedTextColor.DARK_PURPLE).decoration(TextDecoration.ITALIC, false))
+                    .addLore(Component.text(util.getToken(i)).color(NamedTextColor.DARK_PURPLE).decoration(TextDecoration.ITALIC, false))
                     .addLore(Component.text(" "))
-                    .addLore(Component.text(getString(caveLevel, i)).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
+                    .addLore(Component.text(util.getString(caveLevel, i)).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false))
                     .build();
 
-            caveGUI.getInventory().setItem(TIER_SLOTS.get(i-1), tier);
+            caveGUI.getInventory().setItem(util.TIER_SLOTS.get(i-1), tier);
         }
+
+        reloadSlot(caveGUI.getInventory(), player);
     }
 
     public void toPrevPage(InventoryClickEvent event) {

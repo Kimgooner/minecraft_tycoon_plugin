@@ -15,8 +15,8 @@ import org.kimgooner.tycoon.db.dao.job.fishing.FishingDAO;
 import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
 import org.kimgooner.tycoon.global.gui.GlobalGUIController;
 import org.kimgooner.tycoon.global.item.global.ItemBuilder;
-import org.kimgooner.tycoon.job.mining.MiningController;
-import org.kimgooner.tycoon.job.mining.MiningStat;
+import org.kimgooner.tycoon.job.mining.controller.MiningController;
+import org.kimgooner.tycoon.job.mining.model.MiningStat;
 
 import java.io.InputStream;
 import java.util.List;
@@ -90,7 +90,6 @@ public class MenuGUI {
                 .addLore(Component.text(String.format(" §f채광 속도: §6%,d ⸕", miningOverall.getSpeed())))
                 .addLore(Component.text(String.format(" §f채광 행운: §6%,d ☘", miningOverall.getFortune())))
                 .addLore(Component.text(String.format(" §f연쇄 파괴: §e%,d ▚", miningOverall.getSpread())))
-                .addLore(Component.text(String.format(" §f순수: §5%.1f ✧", miningOverall.getPristine())))
                 .addLore(Component.text(String.format(" §f빛: §e%,d ✦", miningOverall.getLight())))
                 .build();
         ItemStack statFarming = new ItemBuilder(Material.DIAMOND_HOE)

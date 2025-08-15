@@ -145,7 +145,7 @@ public class CaveHeartUtil {
             Map.entry(10, "광물 재생 속도 감소"),
             Map.entry(11, "빛 증가 I"),
             Map.entry(12, "균열 광물 탐사"),
-            Map.entry(13, "순수 증가 I"),
+            Map.entry(13, "하위 광산 채광 행운 증가"),
             Map.entry(14, "채광 경험치 획득량 증가"),
 
             Map.entry(15, "채광 이벤트 보너스: 속도"),
@@ -163,7 +163,7 @@ public class CaveHeartUtil {
             Map.entry(25, "채광 행운 II"),
 
             Map.entry(26, "채광 이벤트 보너스: 상자"),
-            Map.entry(27, "순수 증가 II"),
+            Map.entry(27, "상위 광산 채광 행운 증가"),
             Map.entry(28, "움브랄나이트 탐사"),
             Map.entry(29, "빛 증가 II"),
             Map.entry(30, "채광 이벤트 보너스: 가루"),

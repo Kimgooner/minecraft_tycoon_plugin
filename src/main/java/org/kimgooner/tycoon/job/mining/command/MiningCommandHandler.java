@@ -8,7 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
 import org.kimgooner.tycoon.global.item.job.mining.PickaxeList;
-import org.kimgooner.tycoon.job.mining.MiningController;
+import org.kimgooner.tycoon.job.mining.controller.MiningController;
 
 import java.util.Set;
 import java.util.UUID;
@@ -18,11 +18,13 @@ public class MiningCommandHandler implements CommandExecutor {
     private final MiningDAO miningDAO;
     private final PickaxeList pickaxeList;
     private final Set<UUID> editingModeSet;
+    private final Set<UUID> statModeSet;
     public MiningCommandHandler(JavaPlugin plugin, GlobalController globalController, MiningController miningController) {
         this.plugin = plugin;
         this.miningDAO = globalController.getGlobalDaoController().getMiningDAO();
         this.pickaxeList = new PickaxeList(plugin);
         this.editingModeSet = miningController.getEditingMode();
+        this.statModeSet = miningController.getStatMode();
     }
 
     @Override
@@ -60,6 +62,16 @@ public class MiningCommandHandler implements CommandExecutor {
                 else{
                     editingModeSet.remove(player.getUniqueId());
                     sender.sendMessage("§c[Tycoon] Edit 모드가 꺼졌습니다.");
+                }
+            }
+            case "stat" -> {
+                if(!editingModeSet.contains(player.getUniqueId())){
+                    statModeSet.add(player.getUniqueId());
+                    sender.sendMessage("§a[Tycoon] Stat 모드가 켜졌습니다.");
+                }
+                else{
+                    statModeSet.remove(player.getUniqueId());
+                    sender.sendMessage("§c[Tycoon] Stat 모드가 꺼졌습니다.");
                 }
             }
             default -> {

@@ -1,8 +1,9 @@
-package org.kimgooner.tycoon.job.mining;
+package org.kimgooner.tycoon.job.mining.model;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.entity.Player;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -10,26 +11,28 @@ import java.util.concurrent.ThreadLocalRandom;
 @Setter
 @Builder
 public class MiningStat {
+    private int level;
+    private double exp;
+
     private int power;
     private int speed;                          // 채광 속도
     private int fortune;                        // 채광 행운
     private int spread;                         // 연쇄 파괴
-    private double pristine;                       // 순수
     private int light;                          // 빛
 
-    private double wisdom;                         // 경험치 획득량
+    private int wisdom;                         // 경험치 획득량
 
     private int dust;                           // 가루 획득량
     private int low_base;                       // 하위 가루 기본값
     private int high_base;                      // 상위 가루 기본값
 
-    private int regen_time;
+    private Long regen_time;
 
     //확률 관련
-    private double find_ore;                    // 광물 발견 확률
-    private double find_block;                  // 풍부한 광물 발견 확률
-    private double find_chest;                  // 상자 드랍 확률
-    private double find_highChest;              // 상위 상자 드랍 확률
+    private int find_ore;                    // 광물 발견 확률
+    private int find_block;                  // 풍부한 광물 발견 확률
+    private int find_chest;                  // 상자 드랍 확률
+    private int find_highChest;              // 상위 상자 드랍 확률
 
     //패시브 스킬
     private boolean is_consecutiveFortune;      // 연속적인 채광: 행운
@@ -43,6 +46,21 @@ public class MiningStat {
     private boolean is_oreTransmutation;        // 광석 변이
     private boolean is_caveBlessing;            // 동굴의 축복
 
+    public void printStat(Player player){
+        player.sendMessage("§f채광 속도: §6%,d".formatted(speed));
+        player.sendMessage("§f채광 행운: §6%,d".formatted(fortune));
+        player.sendMessage("§f연쇄 파괴: §e%,d".formatted(spread));
+        player.sendMessage("§f빛: §e%,d".formatted(light));
+        player.sendMessage("§f채광 숙련: §3%,d".formatted(wisdom));
+        player.sendMessage("§f가루 획득량: §3%,d".formatted(dust));
+        player.sendMessage("§f추가 하위 가루 기본 값: §a%,d".formatted(low_base));
+        player.sendMessage("§f추가 상위 가루 기본 값: §5%,d".formatted(high_base));
+        player.sendMessage("§f광물 발견: §7%,d".formatted(find_ore));
+        player.sendMessage("§f풍부 발견: §7%,d".formatted(find_block));
+        player.sendMessage("§f상자 드랍: §e%,d".formatted(find_chest));
+        player.sendMessage("§f상위 상자 드랍: §e%,d".formatted(find_highChest));
+    }
+
     public boolean consecutiveFortune() {return this.is_consecutiveFortune;}
     public boolean consecutiveSpeed() {return this.is_consecutiveSpeed;}
     public boolean eventFortune() {return this.is_eventFortune;}
@@ -55,18 +73,19 @@ public class MiningStat {
     public boolean umbralOre() {return this.is_umbralOre;}
 
     //확률 템플릿
-    private boolean checkChanceMul(double baseChance, double bonusMultiplier) {
-        double resultChance = baseChance * (1.0 + bonusMultiplier);
-        int weight = (int) Math.floor(resultChance * 100);
+    private boolean checkChance(int baseChance, int bonusChance) {
+        int chance = baseChance * (100 + bonusChance);
         int roll = ThreadLocalRandom.current().nextInt(10000) + 1;
-        return roll <= weight;
+        return roll <= chance;
     }
-    private boolean checkChanceAdd(double baseChance, double bonusAdd) {
-        double resultChance = baseChance + bonusAdd;
-        int weight = (int) Math.floor(resultChance * 100);
-        int roll = ThreadLocalRandom.current().nextInt(10000) + 1;
-        return roll <= weight;
+
+    private boolean checkBigChance(int baseChance, int bonusChance) {
+        int chance = baseChance * (100 + bonusChance);
+        int roll = ThreadLocalRandom.current().nextInt(1000000) + 1;
+        return roll <= chance;
     }
+
+
     private int getCount(int stat){
         int guaranteed = stat / 100;
         int chance = stat - (guaranteed * 100);
@@ -81,17 +100,16 @@ public class MiningStat {
     public double calcExp(double exp) {return exp * (1 + (wisdom / 100.0));}
     public int calcLowDust(int base) {return (int) ((base + low_base) + (base + low_base) * (dust / 100.0));}
     public int calcHighDust(int base) {return (int) ((base + high_base) + (base + high_base) * (dust / 100.0));}
-    public boolean isPristine() {return checkChanceAdd(5.0, pristine);}
-    public boolean oreFind() {return checkChanceMul(50.0, find_ore);}
-    public boolean blockFind() {return checkChanceMul(20.0, find_block);}
+    public boolean oreFind() {return checkChance(50, find_ore);}
+    public boolean blockFind() {return checkChance(20, find_block);}
     public boolean chestFind(int area) {
         return switch (area) {
-            case 1 -> checkChanceMul(0.14, find_chest);
-            case 2 -> checkChanceMul(0.18, find_chest);
-            case 3 -> checkChanceMul(0.20, find_chest);
-            case 4 -> checkChanceMul(0.27, find_chest);
+            case 1 -> checkBigChance(14, find_chest);
+            case 2 -> checkBigChance(18, find_chest);
+            case 3 -> checkBigChance(20, find_chest);
+            case 4 -> checkBigChance(27, find_chest);
             default -> false;
         };
     }
-    public boolean highChestFind() {return checkChanceMul(20.0, find_highChest);}
+    public boolean highChestFind() {return checkChance(20, find_highChest);}
 }

@@ -14,7 +14,7 @@ import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartGUI;
 import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartUpEventHandler;
 import org.kimgooner.tycoon.global.gui.job.mining.heart.CaveHeartUpGUI;
 import org.kimgooner.tycoon.global.gui.menu.MenuGUI;
-import org.kimgooner.tycoon.job.mining.MiningController;
+import org.kimgooner.tycoon.job.mining.controller.MiningController;
 
 @Getter
 public class GlobalGUIController {
@@ -53,9 +53,9 @@ public class GlobalGUIController {
         this.mineTeleportGUI = new MineTeleportGUI(plugin, globalController);
 
         this.caveHeartGUI = new CaveHeartGUI(plugin, this, globalController);
-        this.caveHeartUpGUI = new CaveHeartUpGUI(plugin, this);
+        this.caveHeartUpGUI = new CaveHeartUpGUI(plugin, this, globalController);
         plugin.getServer().getPluginManager().registerEvents(new CaveHeartEventHandler(plugin, globalController), plugin);
-        plugin.getServer().getPluginManager().registerEvents(new CaveHeartUpEventHandler(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new CaveHeartUpEventHandler(plugin, globalController), plugin);
     }
 
     public void closeInventory(InventoryClickEvent event) {

@@ -16,8 +16,8 @@ repositories {
     }
 
     maven {
-        name = "papermc-repo"
-        url = "https://repo.papermc.io/repository/maven-public/"
+        name = "papermc"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven {
         url = "https://repo.fancyinnovations.com/releases"
