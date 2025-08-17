@@ -85,7 +85,6 @@ public class MiningStat {
         return roll <= chance;
     }
 
-
     private int getCount(int stat){
         int guaranteed = stat / 100;
         int chance = stat - (guaranteed * 100);

@@ -17,9 +17,18 @@ public class PickaxeList {
                 .hideAttributeModifiers()
                 .unbreakable(true)
                 .displayName(Component.text("테스트용").color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false))
-                .setPower(2)
-                .setSpeed(600)
-                .setFortune(140)
+                .setPower(1)
+                .setSpeed(1)
+                .setFortune(1)
+                .setSpread(1)
+                .setDust(1)
+                .setWisdom(1)
+                .enchantEfficiency(1)
+                .enchantFortune(4)
+                .enchantArcheologist(8)
+                .enchantWiseMiner(10)
+                .hideAttributeModifiers()
+                .unbreakable(true)
                 .build();
     }
 

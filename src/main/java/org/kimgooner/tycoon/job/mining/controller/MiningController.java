@@ -7,6 +7,7 @@ import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.job.mining.command.HeartCommandHandler;
 import org.kimgooner.tycoon.job.mining.command.MiningCommandHandler;
 import org.kimgooner.tycoon.job.mining.event.MiningEventHandler;
+import org.kimgooner.tycoon.job.mining.event.MiningPortalEventHandler;
 import org.kimgooner.tycoon.job.mining.model.MiningStat;
 import org.kimgooner.tycoon.job.mining.service.*;
 
@@ -35,6 +36,7 @@ public class MiningController {
     private final MiningDropService miningDropService;
     private final BlockRegenService blockRegenService;
     private final BlockSpreadService blockSpreadService;
+    private final MiningPortalEventHandler miningPortalEventHandler;
 
     public MiningController(JavaPlugin plugin, GlobalController globalController) {
         this.globalController = globalController;
@@ -60,7 +62,9 @@ public class MiningController {
                 miningDropService,
                 blockRegenService,
                 blockSpreadService), plugin);
-        plugin.getCommand("mining").setExecutor(new MiningCommandHandler(plugin, globalController, this));
+        this.miningPortalEventHandler = new MiningPortalEventHandler(plugin);
+        plugin.getServer().getPluginManager().registerEvents(miningPortalEventHandler, plugin);
+        plugin.getCommand("mining").setExecutor(new MiningCommandHandler(plugin, globalController, this, miningPortalEventHandler));
         plugin.getCommand("heart").setExecutor(new HeartCommandHandler(plugin, globalController));
     }
 

@@ -286,7 +286,9 @@ public class CaveHeartUtil {
                     "§8하위 균열 광물 - 균열 광물 발견 시 60%",
                     "§8상위 균열 광물 - 균열 광물 발견 시 40%"
             )),
-            Map.entry(13, (level) -> List.of("§5순수 ✧ §f: " + "§a+%d".formatted((level)))),
+            Map.entry(13, (level) -> List.of("§6채광 행운 ☘ §f: " + "§a+%d".formatted((level)*5),
+                    "§f(§f§n버려진 채석장§f, §f§n깊은 광산§f에 있을 시)"
+            )),
             Map.entry(14, (level) -> List.of("§3채광 숙련 §f: " + "§a+%.1f".formatted(level*(0.5)))),
 
             //5
@@ -350,7 +352,9 @@ public class CaveHeartUtil {
                     "§8하위 균열 광물 - 균열 광물 발견 시 60%",
                     "§8상위 균열 광물 - 균열 광물 발견 시 40%"
             )),
-            Map.entry(13, (level) -> List.of("§5순수 ✧ §f: " + "§a+%d §f-> §8+%d".formatted((level), (level+1)))),
+            Map.entry(13, (level) -> List.of("§6채광 행운 ☘ §f: " + "§a+%d §f-> §8+%d".formatted((level)*5, (level+1)*5),
+                    "§f(§f§n버려진 채석장§f, §f§n깊은 광산§f에 있을 시)"
+            )),
             Map.entry(14, (level) -> List.of("§3채광 숙련 §f: " + "§a+%.1f §f-> §8+%.1f".formatted(level*(0.5), (level+1)*(0.5)))),
 
             //5
@@ -360,7 +364,57 @@ public class CaveHeartUtil {
                     "§6채광 행운 ☘ §f: " + "§a+%d §f-> §8+%d".formatted((level), (level+1))
             )),
             Map.entry(17, (level) -> List.of("§b채광 이벤트§f가 진행 중인 경우,",
-                    "§6채광 행운 ☘§f이 §a100 §f증가합니다."))
+                    "§6채광 행운 ☘§f이 §a50 §f증가합니다.")),
+
+            //6
+            Map.entry(18, (level) -> List.of("§a하위 광석의 가루§f 기본 획득량: §a+%d §f-> §8+%d".formatted((level), (level+1)),
+                    "§8광물 채광 시 획득하는 하위 광석의 가루의 기본 값을 증가시킵니다.",
+                    "§8기본 획득량",
+                    "§81티어 광물 - 2개",
+                    "§82티어 광물 - 4개",
+                    "§83티어 광물 - 6개",
+                    "§84티어 광물 - 10개")),
+            Map.entry(19, (level) -> List.of("§7풍부한 광물 §f발견 확률 §f: " + "§a%d%% §f-> §8%d%% §f증가".formatted(level, level+1),
+                    "§8광산에서 광물 재생의 결과로 광물이 등장했을 때,",
+                    "§8풍부한 광물이 등장할 확률을 증가시킵니다. (기본 20%)"
+            )),
+            Map.entry(20, (level) -> List.of("§e연쇄 파괴 ▚ §f: " + "§a+%d §f-> §8+%d".formatted((level)*2, (level+1)*2))),
+            Map.entry(21, (level) -> List.of("§7광물 §f발견 확률 §f: " + "§a+%d%% §f-> §8+%d%% §f증가".formatted(level, level+1),
+                    "§8광산에서 광물 재생 시",
+                    "§8광물이 등장할 확률을 증가시킵니다. (기본 50%)"
+            )),
+            Map.entry(22, (level) -> List.of("§5상위 광석의 가루§f 기본 획득량: §a+%d §f-> §8+%d".formatted((level), (level+1)),
+                    "§8광물 채광 시 획득하는 상위 광석의 가루의 기본 값을 증가시킵니다.",
+                    "§8기본 획득량",
+                    "§85티어 광물 - 2개",
+                    "§86티어 광물 - 4개",
+                    "§87티어 광물 - 6개",
+                    "§88티어 광물 - 10개")),
+            //7
+            Map.entry(23, (level) -> List.of("§6채광 속도 ⸕ §f: " + "§a+%d §f-> §8+%d".formatted((level)*40, (level+1)*40))),
+            Map.entry(24, (level) -> List.of("§f가루 획득량 증가: §2+%d%% §f-> §8+%d%%".formatted((level), (level+1)))),
+            Map.entry(25, (level) -> List.of("§6채광 행운 ☘ §f: " + "§a+%d §f-> §8+%d".formatted((level)*3, (level+1)*3))),
+            //8
+            Map.entry(26, (level) -> List.of("§b채광 이벤트§f가 진행 중인 경우,",
+                    "§e보물 상자 §f발견 확률이 §a25%% §f증가합니다.")),
+            Map.entry(27, (level) -> List.of("§6채광 행운 ☘ §f: " + "§a+%d §f-> §8+%d".formatted((level)*5, (level+1)*5),
+                    "§f(§f§n미탐사 구역§f, §f§n종착점§f에 있을 시)"
+            )),
+            Map.entry(28, (level) -> List.of("§1움브랄나이트§f를 발견할 수 있게 됩니다.",
+                    "§8광물 10개를 채광할 때마다, 움브랄나이트를 생성할 기회를 획득합니다.",
+                    "§8기본 발견 확률 - 0.087%"
+            )),
+            Map.entry(29, (level) -> List.of("§e빛 ✦ §f: " + "§a+%d §f-> §8+%d".formatted((level)*10, (level+1)*10))),
+            Map.entry(30, (level) -> List.of("§b채광 이벤트§f가 진행 중인 경우,",
+                    "§2가루 획득량§f이 §a25%% §f증가합니다.")),
+
+            //9
+            Map.entry(31, (level) -> List.of("§b채광 이벤트§f가 진행 중인 경우,",
+                    "§2가루 획득량§f이 §a25%% §f증가합니다.")),
+            Map.entry(32, (level) -> List.of("§b채광 이벤트§f가 진행 중인 경우,",
+                    "§2가루 획득량§f이 §a25%% §f증가합니다.")),
+            Map.entry(33, (level) -> List.of("§b채광 이벤트§f가 진행 중인 경우,",
+                    "§2가루 획득량§f이 §a25%% §f증가합니다."))
     );
 
     public final List<Integer> TIER_SLOTS = List.of(

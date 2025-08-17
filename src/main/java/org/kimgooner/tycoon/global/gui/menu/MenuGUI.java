@@ -85,7 +85,7 @@ public class MenuGUI {
                 .addLore(Component.text(" " + makePercentBar(miningExp, EXP_LISTS.get(miningLevel))))
                 .addLore(Component.text(" §f채광 경험치 획득량:"))
                 .addLore(Component.text(" §7레벨 보너스:"))
-                .addLore(Component.text(String.format("  §f채광 속도: §6+%,d ☘", miningLevel * 4)))
+                .addLore(Component.text(String.format("  §f채광 행운: §6+%,d ☘", miningLevel * 4)))
                 .addLore(Component.text("§7스텟:"))
                 .addLore(Component.text(String.format(" §f채광 속도: §6%,d ⸕", miningOverall.getSpeed())))
                 .addLore(Component.text(String.format(" §f채광 행운: §6%,d ☘", miningOverall.getFortune())))

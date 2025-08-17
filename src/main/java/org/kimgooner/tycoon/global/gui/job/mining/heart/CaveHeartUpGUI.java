@@ -71,7 +71,7 @@ public class CaveHeartUpGUI {
                         .addLore(Component.text(util.getCost(i, level)))
                         .build();
 
-                gui.setItem(util.STATS_LOCATIONS.get(i), stat);
+                gui.setItem(util.STATS_LOCATIONS_UP.get(i), stat);
             }
             else{
                 baseItem = new ItemStack(Material.EMERALD_BLOCK, level);
@@ -92,7 +92,7 @@ public class CaveHeartUpGUI {
                         .addLore(Component.text("§a최대 레벨입니다!"))
                         .build();
 
-                gui.setItem(util.STATS_LOCATIONS.get(i), stat);
+                gui.setItem(util.STATS_LOCATIONS_UP.get(i), stat);
             }
         }
     }

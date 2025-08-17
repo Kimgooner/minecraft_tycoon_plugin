@@ -94,8 +94,15 @@ public class MiningStatService {
                 + buffMap_2.getOrDefault(uuid, 0);
 
         if(floor != 0) {
+            if(floor <= 2){
+                fortune += heartLevels.getOrDefault(13, 0) * 5;
+            }
+            else{
+                fortune += heartLevels.getOrDefault(27, 0) * 5;
+            }
             int bonus_fortune = (light - REGION_LIGHT.get(floor)) / 100;
             if (bonus_fortune > 5) bonus_fortune = 5;
+            if (bonus_fortune < 0) bonus_fortune = 0;
             fortune = (int) Math.floor(fortune * (1 + bonus_fortune / 100.0));
         }
 

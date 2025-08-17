@@ -41,9 +41,9 @@ public class ItemStatCalculator {
     private record EnchantInfo(String enchantName, int value) {}
     private final Map<String, EnchantInfo> enchantments = Map.ofEntries(
             Map.entry("mining_speed", new EnchantInfo("efficiency", 20)),
-            Map.entry("mining_fortune", new EnchantInfo("mining_fortune", 5)),
+            Map.entry("mining_fortune", new EnchantInfo("fortune", 5)),
             Map.entry("mining_dust", new EnchantInfo("archeologist", 2)),
-            Map.entry("mining_wisdom", new EnchantInfo("wiseMiner", 2))
+            Map.entry("mining_wisdom", new EnchantInfo("miner", 2))
     );
 
     private PersistentDataContainer getSafePDC(ItemStack item) {

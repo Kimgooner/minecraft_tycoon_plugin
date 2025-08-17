@@ -1,5 +1,6 @@
 package org.kimgooner.tycoon.job.mining.command;
 
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -9,6 +10,8 @@ import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
 import org.kimgooner.tycoon.global.item.job.mining.PickaxeList;
 import org.kimgooner.tycoon.job.mining.controller.MiningController;
+import org.kimgooner.tycoon.job.mining.event.MiningPortalEventHandler;
+import org.kimgooner.tycoon.job.mining.model.MiningBuffZone;
 
 import java.util.Set;
 import java.util.UUID;
@@ -19,12 +22,14 @@ public class MiningCommandHandler implements CommandExecutor {
     private final PickaxeList pickaxeList;
     private final Set<UUID> editingModeSet;
     private final Set<UUID> statModeSet;
-    public MiningCommandHandler(JavaPlugin plugin, GlobalController globalController, MiningController miningController) {
+    private final MiningPortalEventHandler portalEventHandler;
+    public MiningCommandHandler(JavaPlugin plugin, GlobalController globalController, MiningController miningController, MiningPortalEventHandler portalEventHandler) {
         this.plugin = plugin;
         this.miningDAO = globalController.getGlobalDaoController().getMiningDAO();
         this.pickaxeList = new PickaxeList(plugin);
         this.editingModeSet = miningController.getEditingMode();
         this.statModeSet = miningController.getStatMode();
+        this.portalEventHandler = portalEventHandler;
     }
 
     @Override
@@ -63,6 +68,7 @@ public class MiningCommandHandler implements CommandExecutor {
                     editingModeSet.remove(player.getUniqueId());
                     sender.sendMessage("§c[Tycoon] Edit 모드가 꺼졌습니다.");
                 }
+                return true;
             }
             case "stat" -> {
                 if(!editingModeSet.contains(player.getUniqueId())){
@@ -73,12 +79,24 @@ public class MiningCommandHandler implements CommandExecutor {
                     statModeSet.remove(player.getUniqueId());
                     sender.sendMessage("§c[Tycoon] Stat 모드가 꺼졌습니다.");
                 }
+                return true;
+            }
+            case "zone" -> {
+                sender.sendMessage("§a[Tycoon] 영역 테스트");
+                Location location = player.getLocation();
+                MiningBuffZone zone = new MiningBuffZone(location, 6, 10);
+                zone.start(plugin);
+                return true;
+            }
+            case "portal" -> {
+                sender.sendMessage("§a[Tycoon] 포탈 테스트");
+                portalEventHandler.spawnPortalInFront(player);
+                return true;
             }
             default -> {
                 sender.sendMessage("§a[Tycoon] 잘못된 명령어입니다.");
                 return false;
             }
         }
-        return false;
     }
 }
