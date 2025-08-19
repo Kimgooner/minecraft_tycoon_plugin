@@ -16,17 +16,20 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.job.mining.controller.MiningController;
+import org.kimgooner.tycoon.job.mining.dto.MiningDataRequestDto;
+import org.kimgooner.tycoon.job.mining.dto.MiningResultDto;
 import org.kimgooner.tycoon.job.mining.model.MiningStat;
 import org.kimgooner.tycoon.job.mining.service.*;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 
 public class MiningEventHandler implements Listener {
-    private final JavaPlugin plugin;
     private final Set<UUID> editingMode;
     private final Set<UUID> statMode;
     private final Map<UUID, MiningStat> miningStatMap;
@@ -34,6 +37,8 @@ public class MiningEventHandler implements Listener {
     private final MiningStatService miningStatService;
     private final MiningBuffService miningBuffService;
     private final MiningDropService miningDropService;
+    private final MiningDataService miningDataService;
+    private final MiningAttributeService miningAttributeService;
     private final BlockRegenService blockRegenService;
     private final BlockSpreadService blockSpreadService;
 
@@ -50,10 +55,11 @@ public class MiningEventHandler implements Listener {
                               MiningStatService miningStatService,
                               MiningBuffService miningBuffService,
                               MiningDropService miningDropService,
+                              MiningDataService miningDataService,
+                              MiningAttributeService miningAttributeService,
                               BlockRegenService blockRegenService,
                               BlockSpreadService blockSpreadService
                               ) {
-        this.plugin = plugin;
         this.editingMode = editingMode;
         this.statMode = miningController.getStatMode();
         this.miningStatMap = miningController.getMiningMap();
@@ -61,6 +67,8 @@ public class MiningEventHandler implements Listener {
         this.miningStatService = miningStatService;
         this.miningBuffService = miningBuffService;
         this.miningDropService = miningDropService;
+        this.miningDataService = miningDataService;
+        this.miningAttributeService = miningAttributeService;
         this.blockRegenService = blockRegenService;
         this.blockSpreadService = blockSpreadService;
     }
@@ -87,19 +95,21 @@ public class MiningEventHandler implements Listener {
             return;
         }
 
-        MiningStat miningOverall = miningStatService.getCachedStat(player, floor);
+        MiningDataRequestDto dto = miningDataService.getPlayerData(player);
+        MiningStat miningOverall = miningStatService.getCachedStat(player, floor, dto);
         miningStatMap.put(player.getUniqueId(), miningOverall);
 
         AttributeInstance attr = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
         if (attr == null) return;
 
-//        miningUtil.removeMiningSpeedModifier(player);
-//        miningUtil.applyMiningSpeedStat(player, miningOverall.getSpeed());
-    }
+        miningAttributeService.calcMiningSpeed(miningOverall, player);
 
-    private final List<Integer> DUST_BASE = List.of(
-            2, 4, 6, 10
-    );
+        double currentValue = attr.getValue(); // 최종 값 (base + modifiers 반영)
+        double baseValue = attr.getBaseValue(); // 기본값 (setBaseValue로 지정한 값)
+
+        player.sendMessage("현재 채굴 속도 값: " + currentValue);
+        player.sendMessage("기본 채굴 속도 값: " + baseValue);
+    }
 
     // 광물 드랍 시스템
     @EventHandler
@@ -114,33 +124,17 @@ public class MiningEventHandler implements Listener {
         if(editingMode.contains(player.getUniqueId())) {return;} // 에딧 모드일 경우
         event.setDropItems(false);
 
-        MiningStat miningStat = miningStatMap.get(player.getUniqueId());
-        MiningDropService.dropResultData dropResultData = miningDropService.getDropItem(player, miningStat, material, floor);
+        MiningStat miningStat = miningStatMap.get(player.getUniqueId()); // miningMap에서 스탯 가져오기
 
         if(statMode.contains(player.getUniqueId())) {
             miningStat.printStat(player);
         }
 
-        int exp = dropResultData.exp();
-        int grade = dropResultData.grade();
-        miningStatService.calcExp(player, miningStat, exp);
-        if(grade != 0) {
-            if (floor <= 2) miningStatService.calcLowDust(player, miningStat, DUST_BASE.get(grade - 1));
-            else miningStatService.calcHighDust(player, miningStat, DUST_BASE.get(grade - 5));
-        }
+        MiningResultDto dto = miningDropService.getDropItem(player, miningStat, material, floor);
 
-        miningBuffService.consecutiveSpeed(player, miningStat.is_consecutiveSpeed());
-        miningBuffService.consecutiveFortune(player, miningStat.is_consecutiveFortune());
+        miningDataService.processMiningData(player, miningStat, dto, floor); // 데이터 처리 ( 경험치, 아이템, 가루 )
+        miningBuffService.processBuff(player, miningStat); // 스택형 버프 처리.
         blockRegenService.getRegenBlock(player, miningStat, block, floor);
         blockSpreadService.applyBlockSpread(player, miningStat, block, floor);
-    }
-
-    @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        if(!miningStatMap.containsKey(player.getUniqueId())) {
-            miningStatMap.put(player.getUniqueId(), miningStatService.getCachedStat(player, 0));
-            plugin.getLogger().info(player.getName() + "의 초기 채광 스텟 세팅 생성.");
-        }
     }
 }

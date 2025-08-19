@@ -6,6 +6,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.job.mining.command.HeartCommandHandler;
 import org.kimgooner.tycoon.job.mining.command.MiningCommandHandler;
+import org.kimgooner.tycoon.job.mining.dto.MiningDataRequestDto;
 import org.kimgooner.tycoon.job.mining.event.MiningEventHandler;
 import org.kimgooner.tycoon.job.mining.event.MiningPortalEventHandler;
 import org.kimgooner.tycoon.job.mining.model.MiningStat;
@@ -34,6 +35,8 @@ public class MiningController {
     private final MiningBuffService miningBuffService;
     private final MiningStatService miningStatService;
     private final MiningDropService miningDropService;
+    private final MiningDataService miningDataService;
+    private final MiningAttributeService miningAttributeService;
     private final BlockRegenService blockRegenService;
     private final BlockSpreadService blockSpreadService;
     private final MiningPortalEventHandler miningPortalEventHandler;
@@ -49,8 +52,15 @@ public class MiningController {
                 );
 
         this.miningBuffService = new MiningBuffService(plugin, buffMap_1, buffMap_2);
-        this.miningDropService = new MiningDropService(plugin,
-                globalController.getGlobalDaoController().getDataStorageDAO());
+        this.miningDropService = new MiningDropService();
+        this.miningDataService = new MiningDataService(
+                plugin,
+                globalController.getGlobalDaoController().getMiningDAO(),
+                globalController.getGlobalDaoController().getHeartDAO(),
+                globalController.getGlobalDaoController().getHeartInfoDAO(),
+                globalController.getGlobalDaoController().getDataStorageDAO()
+        );
+        this.miningAttributeService = new MiningAttributeService();
         this.blockRegenService = new BlockRegenService(plugin);
         this.blockSpreadService = new BlockSpreadService(plugin, miningDropService, blockRegenService);
 
@@ -60,6 +70,8 @@ public class MiningController {
                 miningStatService,
                 miningBuffService,
                 miningDropService,
+                miningDataService,
+                miningAttributeService,
                 blockRegenService,
                 blockSpreadService), plugin);
         this.miningPortalEventHandler = new MiningPortalEventHandler(plugin);
@@ -71,11 +83,12 @@ public class MiningController {
     public Map<UUID, MiningStat> getMiningMap() {return globalController.getMiningOverallMap();}
     public MiningStat getMiningStat(Player player) {
         UUID uuid = player.getUniqueId();
-        Map<UUID, MiningStat> miningMap =  getMiningMap();
+        Map<UUID, MiningStat> miningMap = getMiningMap();
         MiningStat miningStat = miningMap.get(uuid);
 
         if(miningStat == null) {
-            miningStat = miningStatService.getCachedStat(player, 0);
+            MiningDataRequestDto dto = miningDataService.getPlayerData(player);
+            miningStat = miningStatService.getCachedStat(player, 0, dto);
             miningMap.put(uuid, miningStat);
         }
         return miningStat;

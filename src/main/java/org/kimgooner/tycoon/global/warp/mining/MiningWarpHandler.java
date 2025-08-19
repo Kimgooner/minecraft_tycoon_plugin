@@ -7,6 +7,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -26,10 +28,18 @@ public class MiningWarpHandler implements Listener {
 
     public void teleportToMineHub(Player player) {
         player.teleport(miningHub);
+        resetMiningSpeed(player);
         player.sendMessage(Component.text("[시스템] - §f§l§n광산 허브§f(으)로 이동합니다.").color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_BREAK, 1.0f, 1.0f);
         }, 1L);
+    }
+
+    private void resetMiningSpeed(Player player) {
+        AttributeInstance attr = player.getAttribute(Attribute.BLOCK_BREAK_SPEED);
+        if (attr == null) return;
+
+        attr.setBaseValue(1.0);
     }
 
     public void openMineTeleport(Player player) {

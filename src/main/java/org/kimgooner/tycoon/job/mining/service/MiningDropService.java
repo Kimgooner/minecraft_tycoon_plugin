@@ -1,25 +1,15 @@
 package org.kimgooner.tycoon.job.mining.service;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.kimgooner.tycoon.db.dao.DataStorageDAO;
+import org.kimgooner.tycoon.job.mining.dto.MiningResultDto;
 import org.kimgooner.tycoon.job.mining.model.MiningStat;
 
 import java.util.Map;
 
 public class MiningDropService {
-    private final JavaPlugin plugin;
-    private final DataStorageDAO dataStorageDAO;
-
-    public MiningDropService(JavaPlugin plugin,  DataStorageDAO dataStorageDAO) {
-        this.plugin = plugin;
-        this.dataStorageDAO = dataStorageDAO;
-    }
-
     public record DropData(ItemStack drop, int grade, int target, int exp) {}
     public final Map<Material, DropData> oreDropTable = Map.ofEntries(
             Map.entry(Material.STONE, new DropData(new ItemStack(Material.STONE), 0, 0, 1)),
@@ -66,7 +56,7 @@ public class MiningDropService {
             Map.entry(Material.DIAMOND_BLOCK, new DropData(new ItemStack(Material.DIAMOND, 2),4,8, 20))
     );
     public record dropResultData(Integer exp, Integer grade) {}
-    public dropResultData getDropItem(Player player, MiningStat playerMiningStat, Material material, int floor) {
+    public MiningResultDto getDropItem(Player player, MiningStat playerMiningStat, Material material, int floor) {
         DropData dropData = oreDropTable.get(material);
 
         ItemStack dropItem = dropData.drop();
@@ -75,7 +65,7 @@ public class MiningDropService {
         int target =  dropData.target();
         int exp = dropData.exp();
 
-        if(playerMiningStat.chestFind(floor)){
+        if(playerMiningStat.chestFind()){
             if(playerMiningStat.highChestFind()){
                 player.playSound(player.getLocation(), Sound.ITEM_MACE_SMASH_GROUND_HEAVY, 1, 1);
                 player.sendMessage("§f[시스템] - §bHIGH CHEST FOUND!!! §e상위 보물 상자§f를 발견했습니다!!");
@@ -88,11 +78,7 @@ public class MiningDropService {
             }
         }
 
-        int[] result_amount = new int[2];
-        result_amount[0] = (playerMiningStat.calcFortune() + 1) * base_amount;
-
-        int finalResult = result_amount[0];
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> dataStorageDAO.addAmount(player, 1, target, finalResult));
-        return new dropResultData(exp, grade);
+        int result_amount = (playerMiningStat.calcFortune() + 1) * base_amount;
+        return new MiningResultDto(result_amount, target, grade, exp);
     }
 }

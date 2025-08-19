@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.kimgooner.tycoon.job.mining.model.MiningStat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +40,12 @@ public class MiningBuffService {
         this.buffMap_2 = buffMap_2;
     }
 
-    public void consecutiveSpeed(Player player, boolean isConsecutive) {
+    public void processBuff(Player player, MiningStat miningStat) {
+        consecutiveSpeed(player, miningStat.isConsecutiveSpeed());
+        consecutiveFortune(player, miningStat.isConsecutiveFortune());
+    }
+
+    private void consecutiveSpeed(Player player, boolean isConsecutive) {
         UUID uuid = player.getUniqueId();
 
         if(!isConsecutive) {return;}
@@ -63,7 +69,7 @@ public class MiningBuffService {
         resetTask_1.put(uuid, resetTask);
     }
 
-    public void consecutiveFortune(Player player, boolean isConsecutive) {
+    private void consecutiveFortune(Player player, boolean isConsecutive) {
         UUID uuid = player.getUniqueId();
 
         if (!isConsecutive) {

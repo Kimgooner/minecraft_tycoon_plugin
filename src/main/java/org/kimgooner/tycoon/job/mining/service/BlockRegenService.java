@@ -88,24 +88,24 @@ public class BlockRegenService {
         Block targetBlock = loc.getBlock();
         Bukkit.getScheduler().runTask(plugin, () -> targetBlock.setType(Material.BEDROCK));
 
-        if(playerMiningStat.umbralOre()){
+        if(playerMiningStat.isUmbralOre()){
             //움브랄나이트 메소드 추가
             Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(Material.STONE), playerMiningStat.getRegen_time());
+            return;
         }
-        else if(playerMiningStat.riftOre()){
+        if(playerMiningStat.isRiftOre()){
             //균열 광물 메소드 추가
             Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(Material.STONE), playerMiningStat.getRegen_time());
+            return;
         }
-        else {
-            Map<Integer, Map<Integer, List<Material>>> currentMap = RESULT_ORE_ORES;
-            if (playerMiningStat.blockFind()) currentMap = RESULT_ORE_BLOCKS;
+        Map<Integer, Map<Integer, List<Material>>> currentMap = RESULT_ORE_ORES;
+        if (playerMiningStat.blockFind()) currentMap = RESULT_ORE_BLOCKS;
 
-            int type = randomOneOrTwo();
-            if (!playerMiningStat.oreFind()) type = 0;
+        int type = randomOneOrTwo();
+        if (!playerMiningStat.oreFind()) type = 0;
 
-            int final_type = type;
-            Map<Integer, Map<Integer, List<Material>>> finalMap = currentMap;
-            Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(getOre(finalMap, floor, final_type)), playerMiningStat.getRegen_time()); // 3초 뒤 광물 변환
-        }
+        int final_type = type;
+        Map<Integer, Map<Integer, List<Material>>> finalMap = currentMap;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> targetBlock.setType(getOre(finalMap, floor, final_type)), playerMiningStat.getRegen_time()); // 3초 뒤 광물 변환
     }
 }

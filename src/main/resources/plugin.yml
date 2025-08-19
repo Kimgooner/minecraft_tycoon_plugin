@@ -9,3 +9,6 @@ commands:
   heart:
     description: 동굴의 심장 명령어
     usage: /heart <subcommand>
+  testpattern:
+    description: 패턴 테스트
+    usage: /testpattern

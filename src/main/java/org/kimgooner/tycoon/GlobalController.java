@@ -32,6 +32,7 @@ public class GlobalController {
     public GlobalController(JavaPlugin plugin, DatabaseManager databaseManager) {
         this.globalDaoController = new GlobalDAOController(databaseManager, plugin);
         this.miningController = new MiningController(plugin,this);
+
         this.globalGuiController = new GlobalGUIController(plugin, globalDaoController, miningController, this);
         this.globalWarpController = new GlobalWarpController(plugin, globalGuiController);
         this.globalNPCController = new GlobalNPCController(plugin, globalGuiController);
