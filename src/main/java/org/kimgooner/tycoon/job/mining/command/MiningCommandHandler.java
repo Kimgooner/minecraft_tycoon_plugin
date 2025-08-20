@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kimgooner.tycoon.GlobalController;
 import org.kimgooner.tycoon.db.dao.job.mining.MiningDAO;
-import org.kimgooner.tycoon.global.item.job.mining.PickaxeList;
+import org.kimgooner.tycoon.global.item.job.mining.Pickaxe;
 import org.kimgooner.tycoon.job.mining.controller.MiningController;
 import org.kimgooner.tycoon.job.mining.event.MiningPortalEventHandler;
 import org.kimgooner.tycoon.job.mining.model.MiningBuffZone;
@@ -19,14 +19,14 @@ import java.util.UUID;
 public class MiningCommandHandler implements CommandExecutor {
     private final JavaPlugin plugin;
     private final MiningDAO miningDAO;
-    private final PickaxeList pickaxeList;
+    private final Pickaxe pickaxe;
     private final Set<UUID> editingModeSet;
     private final Set<UUID> statModeSet;
     private final MiningPortalEventHandler portalEventHandler;
     public MiningCommandHandler(JavaPlugin plugin, GlobalController globalController, MiningController miningController, MiningPortalEventHandler portalEventHandler) {
         this.plugin = plugin;
         this.miningDAO = globalController.getGlobalDaoController().getMiningDAO();
-        this.pickaxeList = new PickaxeList(plugin);
+        this.pickaxe = new Pickaxe(plugin);
         this.editingModeSet = miningController.getEditingMode();
         this.statModeSet = miningController.getStatMode();
         this.portalEventHandler = portalEventHandler;
@@ -52,7 +52,7 @@ public class MiningCommandHandler implements CommandExecutor {
                 }
                 try {
                     int index = Integer.parseInt(args[1]);
-                    ((Player) sender).give(pickaxeList.getTestPickaxe(player));
+                    pickaxe.getPickaxe(player, index);
                 } catch (NumberFormatException e) {
                     sender.sendMessage("§cindex는 숫자여야 합니다.");
                     return true;

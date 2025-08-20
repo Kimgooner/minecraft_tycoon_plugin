@@ -115,7 +115,6 @@ public class GlobalEventHandler implements Listener {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             initTable(player);
             initStatManager(player);
-
             Bukkit.getScheduler().runTask(plugin, () -> {
                 initializedPlayers.add(player.getUniqueId());
                 plugin.getLogger().info(player.getName() + " 초기 세팅 완료.");

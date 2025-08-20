@@ -18,7 +18,8 @@ public class DatabaseManager {
         try (Connection connection = dataSource.getConnection();
             Statement stmt = connection.createStatement()) {
 
-            dropAllTables(connection); // 테스트용, 나중엔 필히 삭제.
+            //dropAllTables(connection); // 테스트용, 나중엔 필히 삭제.
+            clearAllTables(connection);
             // 플레이어 정보
             stmt.executeUpdate("""
             CREATE TABLE IF NOT EXISTS members (
@@ -134,7 +135,7 @@ public class DatabaseManager {
         }
     }
 
-    public static void dropAllTables(Connection connection) {
+    private void dropAllTables(Connection connection) {
         try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("DROP TABLE IF EXISTS cave_heart_info;");
             stmt.executeUpdate("DROP TABLE IF EXISTS cave_heart;");
@@ -148,6 +149,23 @@ public class DatabaseManager {
             e.printStackTrace();
         }
     }
+
+    private void clearAllTables(Connection connection) {
+        try (Statement stmt = connection.createStatement()) {
+            stmt.executeUpdate("DELETE FROM cave_heart_info;");
+            stmt.executeUpdate("DELETE FROM cave_heart;");
+            stmt.executeUpdate("DELETE FROM data_storage;");
+            stmt.executeUpdate("DELETE FROM combats;");
+            stmt.executeUpdate("DELETE FROM fishings;");
+            stmt.executeUpdate("DELETE FROM farmings;");
+            stmt.executeUpdate("DELETE FROM minings;");
+            stmt.executeUpdate("DELETE FROM members;");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setColumnsOnlinePlayers(Connection connection) throws SQLException {}
 
     public Connection getConnection() throws SQLException {
         if (dataSource == null) {
